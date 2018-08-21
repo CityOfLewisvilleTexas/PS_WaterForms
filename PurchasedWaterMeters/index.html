@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Purchased Water Meters</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+
+      /* Scrollable table body */
+      /*.table-fixed tbody {
+          display:block;
+          height:700px;
+          overflow:auto;
+      }
+      .table-fixed thead, tbody tr {
+          display:table;
+          width:100%;
+          table-layout:fixed;
+      }
+      .table-fixed thead {
+          width: calc( 100% - 1em );
+      }*/
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid" id="app">
+      <h4 class="text-center">{{ months[parseInt(monthParam) - 1] }} Purchased Water Meters</h4>
+      <br>
+      
+      <table class="table table-fixed table-bordered table-condensed table-responsive">
+        <thead>
+          <tr>
+            <th rowspan="2">Date {{ yearParam }} </th>
+            <th colspan="2">SSPS x1000</th>
+            <th colspan="2">ESPS x1000</th>
+            <th colspan="2">ESBS x1000</th>
+            <th colspan="2">MWPS x1000</th>
+            <th colspan="2">SSPS Dallas x1000</th>
+            <th colspan="2">ESPS Dallas x1000</th>
+            <th colspan="2">MWPS Dallas x1000</th>
+            <th colspan="2">SSPS Computer</th>
+            <th colspan="2">ESPS Computer</th>
+            <th colspan="2">MWPS Computer</th>
+            <th>ESBS Computer</th>
+            <th rowspan="1">Lew Computer</th>
+            <th rowspan="1">Lew Meters</th>
+            <th rowspan="1">Dallas Computer</th>
+            <th rowspan="1">Dallas Meters</th>
+            <th rowspan="3" class="editBtn"></th>
+          </tr>
+          <tr>
+            <th>Meter</th>
+            <th>Total</th>
+            <th>Meter</th>
+            <th>Total</th>
+            <th>Meter</th>
+            <th>Total</th>
+            <th>Meter</th>
+            <th>Total</th>
+            <th>Meter</th>
+            <th>Total</th>
+            <th>Meter</th>
+            <th>Total</th>
+            <th>Meter</th>
+            <th>Total</th>
+            <th rowspan="2">Lew</th>
+            <th rowspan="2">Dallas</th>
+            <th rowspan="2">Lew</th>
+            <th rowspan="2">Dallas</th>
+            <th rowspan="2">Lew</th>
+            <th rowspan="2">Dallas</th>
+            <th rowspan="2">Lew</th>
+            <th rowspan="2">Total Usage</th>
+            <th rowspan="2">Total Usage</th>
+            <th rowspan="2">Total Usage</th>
+            <th rowspan="2">Total Usage</th>
+          </tr>
+          <tr class="active">
+            <th>Last Month</th>
+            <th>{{ previousMonth.SSPS_Lewisville_Meters }}</th>
+            <th></th>
+            <th>{{ previousMonth.ESPS_Lewisville_Meters }}</th>
+            <th></th>
+            <th>{{ previousMonth.ESBS_Lewisville_Meters }}</th>
+            <th></th>
+            <th>{{ previousMonth.MWPS_Lewisville_Meters }}</th>
+            <th></th>
+            <th>{{ previousMonth.SSPS_Dallas_Meters }}</th>
+            <th></th>
+            <th>{{ previousMonth.ESPS_Dallas_Meters }}</th>
+            <th></th>
+            <th>{{ previousMonth.MWPS_Dallas_Meters }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(row, index) in data">
+            <td>{{ formatDate(row.day) }}</td>
+            <td>{{ row.SSPS_Lewisville_Meters }}</td>
+            <td>{{ rowDifference('SSPS_Lewisville_Meters', index) }}</td>
+            <td>{{ row.ESPS_Lewisville_Meters }}</td>
+            <td>{{ rowDifference('ESPS_Lewisville_Meters', index) }}</td>
+            <td>{{ row.ESBS_Lewisville_Meters }}</td>
+            <td>{{ rowDifference('ESBS_Lewisville_Meters', index) }}</td>
+            <td>{{ row.MWPS_Lewisville_Meters }}</td>
+            <td>{{ rowDifference('MWPS_Lewisville_Meters', index) }}</td>
+            <td>{{ row.SSPS_Dallas_Meters }}</td>
+            <td>{{ rowDifference('SSPS_Dallas_Meters', index) }}</td>
+            <td>{{ row.ESPS_Dallas_Meters }}</td>
+            <td>{{ rowDifference('ESPS_Dallas_Meters', index) }}</td>
+            <td>{{ row.MWPS_Dallas_Meters }}</td>
+            <td>{{ rowDifference('MWPS_Dallas_Meters', index) }}</td>
+            <td>{{ pushOnToCalc('SSPS_Lewisville_Computer', index) }}</td>
+            <td>{{ pushOnToCalc('SSPS_Dallas_Computer', index) }}</td>
+            <td>{{ pushOnToCalc('ESPS_Lewisville_Computer', index) }}</td>
+            <td>{{ pushOnToCalc('ESPS_Dallas_Computer', index) }}</td>
+            <td>{{ pushOnToCalc('MWPS_Lewisville_Computer', index) }}</td>
+            <td>{{ pushOnToCalc('MWPS_Dallas_Computer', index) }}</td>
+            <td>{{ pushOnToCalc('ESBS_Lewisville_Computer', index) }}</td>
+            <td>{{ calculateLewComp(index) }}</td>
+            <td>{{ calculateLewMeters(index) }}</td>
+            <td>{{ calculateDallasComp(index) }}</td>
+            <td>{{ calculateDallasMeters(index) }}</td>
+            <td class="editBtn">
+              <a class="btn btn-primary btn-xs editBtn tab" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=50&record=' + row.PSOFIA_RecordNumber + '#96'" target="_blank" v-if="row.PSOFIA_RecordNumber">EDIT</a>
+              <a class="btn btn-warning btn-xs editBtn tab" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=50'" target="_blank" v-if="!row.PSOFIA_RecordNumber">NEW</a>
+            </td>
+          </tr>
+          <tr class="bg-info" v-if="data.length > 0">
+            <th>Totals</th>
+            <td></td>
+            <td>{{ calculateMeterMonthlyDiff('SSPS_Lewisville_Meters') }}</td>
+            <td></td>
+            <td>{{ calculateMeterMonthlyDiff('ESPS_Lewisville_Meters') }}</td>
+            <td></td>
+            <td>{{ calculateMeterMonthlyDiff('ESBS_Lewisville_Meters') }}</td>
+            <td></td>
+            <td>{{ calculateMeterMonthlyDiff('MWPS_Lewisville_Meters') }}</td>
+            <td></td>
+            <td>{{ calculateMeterMonthlyDiff('SSPS_Dallas_Meters') }}</td>
+            <td></td>
+            <td>{{ calculateMeterMonthlyDiff('ESPS_Dallas_Meters') }}</td>
+            <td></td>
+            <td>{{ calculateMeterMonthlyDiff('MWPS_Dallas_Meters') }}</td>
+            <td>{{ columnCalc('SSPS_Lewisville_Computer') }}</td>
+            <td>{{ columnCalc('SSPS_Dallas_Computer') }}</td>
+            <td>{{ columnCalc('ESPS_Lewisville_Computer') }}</td>
+            <td>{{ columnCalc('ESPS_Dallas_Computer') }}</td>
+            <td>{{ columnCalc('MWPS_Lewisville_Computer') }}</td>
+            <td>{{ columnCalc('MWPS_Dallas_Computer') }}</td>
+            <td>{{ columnCalc('ESBS_Lewisville_Computer') }}</td>
+            <td>{{ columnCalc('LewCompTotal') }}</td>
+            <td>{{ columnCalc('LewMetersTotal') }}</td>
+            <td>{{ columnCalc('DallasCompTotal') }}</td>
+            <td>{{ columnCalc('DallasMetersTotal') }}</td>
+            <td class="editBtn"></td>
+          </tr>
+          <tr v-if="data.length > 0">
+            <th colspan="4">Monthly Totals Meter Reading Dallas</th>
+            <td>{{ calculateMonthlyMeterTotal('Dallas') }}</td>
+            <th colspan="4">Monthly Totals Comp. Reading Dallas</th>
+            <td>{{ calculateDallasCompTotal() }}</td>
+          </tr>
+          <tr v-if="data.length > 0">
+            <th colspan="4">Monthly Totals Meter Reading Lew.</th>
+            <td>{{ calculateMonthlyMeterTotal('Lewisville') }}</td>
+            <th colspan="4">Monthly Totals Comp. Reading Lew.</th>
+            <td>{{ columnCalc('LewCompTotal') }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <button id="download-csv" v-on:click="exportTableToCSV('purchased_water_meter.csv')">Download Excel File</button>
+    </div>
+    <script src="./main.js?v=1.2"></script>
+  </body>
+</html>

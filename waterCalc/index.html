@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Water Monthly Calculations</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <!-- <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1600px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <select v-model="year" class="selectpicker">
+        <option :value="year">Choose Year</option>
+        <option v-for="option in options" v-bind:value="option.value">
+          {{ option.text }}
+        </option>
+      </select>
+      <select v-model="mode" class="selectpicker">
+        <option :value="mode">Choose Mode</option>
+        <option v-for="option in modeOptions" v-bind:value="option.value">
+          {{ option.text }}
+        </option>
+      </select>
+      <h4 class="text-center">Water Monthly Calculations - {{ year }}</h4>
+      
+      <ul class="nav nav-tabs">
+        <li v-for="month in months" :class="(currentTab == month) ? 'active': '' "><a href="#" v-on:click="changeTab(month)" >{{ month }}</a></li>
+      </ul>
+
+      <div v-if="!loading" v-for="(month, index) in months" class="tab-content">
+        <div :id="index" class="tab-pane fade table-fixed" v-bind:class="{'active': currentTab == month, 'in': currentTab == month }" v-show="currentTab == month">
+          <monthly-table v-bind:month="data[index + 1]" v-bind:previousmonth="data[index]" v-bind:ytdtotals="ytd_totals[index + 1]"></monthly-table>
+        </div>
+      </div>
+      
+      <button id="download-csv" v-on:click="exportTableToCSV('three_year_fiscal_summary.csv')">Download Excel File</button>
+
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    
+    <script type="text/x-template" id="monthly-table-template">
+      <table class="table table-bordered table-condensed table-striped table-hover">
+        <thead>
+          <tr>
+            <th>{{ month.rMonth }}/{{  month.rYear }}</th>
+            <!-- <th></th> -->
+            <th></th>
+            <th>This Month</th>
+            <th>Last Month</th>
+            <th>YTD</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Raw Water (MG)</td>
+            <td>Total</td>
+            <td>{{ localizeFloat(parseInt(month.raw_vault) / 1000000, 3) }}</td>
+            <td>{{ localizeFloat(parseInt(previousmonth.raw_vault) / 1000000, 3) }}</td>
+            <td>{{ localizeFloat(parseInt(ytdtotals.raw_water_ytd) / 1000000, 3) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>Avg.</td>
+            <td>{{ localizeFloat(parseInt(month.raw_vault) / 1000000 / daysInMonth(month.rMonth, month.rYear), 2) }}</td>
+            <td>{{ localizeFloat(parseInt(previousmonth.raw_vault) / 1000000 / daysInMonth(previousmonth.rMonth, previousmonth.rYear), 2) }}</td>
+            <td>{{ localizeFloat(parseInt(ytdtotals.raw_water_ytd) / 1000000 / daysInMonth(month.rMonth, month.rYear, true), 2) }}</td>
+          </tr>
+          <tr>
+            <td>Loss in Treatment (MG)</td>
+            <td>Total</td>
+            <td>{{ localizeFloat(diff(month.raw_vault, month.finished, true) / 1000000, 2)  }}</td>
+            <td>{{ localizeFloat(diff(previousmonth.raw_vault, previousmonth.finished, true) / 1000000, 2)  }}</td>
+            <td>{{ localizeFloat(ytdtotals.loss_plant_ytd, 2) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>%</td>
+            <td>{{ localizeFloat((diff(month.raw_vault, month.finished, true) / parseFloat(month.raw_vault) * 100), 1) }}</td>
+            <td>{{ localizeFloat((diff(previousmonth.raw_vault, previousmonth.finished, true) / parseFloat(previousmonth.raw_vault) * 100), 1) }}</td>
+            <td>{{ localizeFloat(parseFloat(ytdtotals.loss_plant_ytd) / (parseInt(ytdtotals.raw_water_ytd) / 1000000), 1) }}</td>
+          </tr>
+          <tr>
+            <td>Water Consumption (MG)</td>
+            <td>Total</td>
+            <td>{{ localizeFloat(total(month.finished, month.dallas) / 1000000, 3) }}</td>
+            <td>{{ localizeFloat(total(previousmonth.finished, previousmonth.dallas) / 1000000, 3) }}</td>
+            <td>{{ localizeFloat(ytdtotals.total_treated_ytd, 3) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>Avg.</td>
+            <td>{{ localizeFloat(total(month.finished, month.dallas) / 1000000 / daysInMonth(month.rMonth, month.rYear), 2) }}</td>
+            <td>{{ localizeFloat(total(previousmonth.finished, previousmonth.dallas) / 1000000 / daysInMonth(month.rMonth, month.rYear), 2) }}</td>
+            <td>{{ localizeFloat(ytdtotals.total_treated_ytd / daysInMonth(month.rMonth, month.rYear, true), 2) }}</td>
+          </tr>
+          <tr>
+            <td>Total Sales (MG)</td>
+            <td>Total</td>
+            <td>{{ localizeFloat(parseInt(month.total_sales) / 1000000, 3) }}</td>
+            <td>{{ localizeFloat(parseInt(previousmonth.total_sales) / 1000000, 3) }}</td>
+            <td>{{ localizeFloat(parseInt(ytdtotals.total_sales_ytd) / 1000000, 3) }}</td>
+          </tr>
+          <tr>
+            <td>Number of Customers</td>
+            <td></td>
+            <td>{{ month.num_cust }}</td>
+            <td>{{ previousmonth.num_cust }}</td>
+            <td>N/A</td>
+          </tr>
+          <tr>
+            <td>Unaccountable Loss (MG)</td>
+            <td>Total</td>
+            <td>{{ localizeFloat(diff(total(month.finished, month.dallas), month.total_sales) / 1000000, 3) }}</td>
+            <td>{{ localizeFloat(diff(total(previousmonth.finished, previousmonth.dallas), previousmonth.total_sales) / 1000000, 3) }}</td>
+            <td>{{ localizeFloat(ytdtotals.unaccounted_loss_ytd, 3) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>%</td>
+            <td>{{ localizeFloat((diff(totalFloat(month.finished, month.dallas), month.total_sales, true) / totalFloat(month.finished, month.dallas) * 100), 2) }}</td>
+            <td>{{ localizeFloat((diff(totalFloat(previousmonth.finished, previousmonth.dallas), previousmonth.total_sales, true) / totalFloat(previousmonth.finished, previousmonth.dallas) * 100), 2) }}</td>
+            <td>{{ localizeFloat(ytdtotals.unaccounted_loss_ytd_percent, 2) }}</td>
+          </tr>
+          <tr>
+            <td>Accountable Loss (MG)</td>
+            <td>Total</td>
+            <td>{{ localizeFloat((diff(month.raw_vault, month.finished, true) / 1000000) + 5.1, 3) }}</td>
+            <td>{{ localizeFloat((diff(previousmonth.raw_vault, previousmonth.finished, true) / 1000000) + 5.1, 3) }}</td>
+            <td>{{ localizeFloat(ytdtotals.accounted_loss_ytd, 3) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>%</td>
+            <td>{{ localizeFloat(((diff(month.raw_vault, month.finished, true) / 1000000) + 5.1) / (total(month.finished, month.dallas) / 1000000) * 100, 2) }}</td>
+            <td>{{ localizeFloat(((diff(previousmonth.raw_vault, previousmonth.finished, true) / 1000000) + 5.1) / (total(previousmonth.finished, previousmonth.dallas) / 1000000) * 100, 2) }}</td>
+            <td>{{ localizeFloat(ytdtotals.accounted_loss_ytd_percent, 2) }}</td>
+          </tr>
+          <tr>
+            <td>Lake Elevation</td>
+            <td></td>
+            <td>{{ localizeFloat(parseFloat(month.level), 2) }}</td>
+            <td>{{ localizeFloat(parseFloat(previousmonth.level), 2) }}</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Treated Water from Dallas</td>
+            <td>ESPS</td>
+            <td>{{ localizeFloat(parseFloat(month.esps), 3) }}</td>
+            <td>{{ localizeFloat(parseFloat(previousmonth.esps), 3) }}</td>
+            <td>{{ localizeFloat(ytdtotals.esps_ytd, 3) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>ESBS</td>
+            <td>{{ localizeFloat(parseFloat(month.esbs), 3) }}</td>
+            <td>{{ localizeFloat(parseFloat(previousmonth.esbs), 3) }}</td>
+            <td>{{ localizeFloat(ytdtotals.esbs_ytd, 3) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>SSPS</td>
+            <td>{{ localizeFloat(parseFloat(month.ssps), 3) }}</td>
+            <td>{{ localizeFloat(parseFloat(previousmonth.ssps), 3) }}</td>
+            <td>{{ localizeFloat(ytdtotals.ssps_ytd, 3) }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>MWPS</td>
+            <td>{{ localizeFloat(parseFloat(month.mwps), 3) }}</td>
+            <td>{{ localizeFloat(parseFloat(previousmonth.mwps), 3) }}</td>
+            <td>{{ localizeFloat(ytdtotals.mwps_ytd, 3) }}</td>
+          </tr>
+          <tr>
+            <td>Total Dallas</td>
+            <td>Total</td>
+            <td>{{ localizeFloat(parseFloat(month.dallas) / 1000000, 3) }}</td>
+            <td>{{ localizeFloat(parseFloat(previousmonth.dallas) / 1000000, 3) }}</td>
+            <td>{{ localizeFloat(parseFloat(ytdtotals.dallas_ytd) / 1000000, 3) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </script>
+    <script src="./monthlyTableComponent.js?v=1.0.0"></script>
+    <script src="./main.js?v=1.0.2"></script>
+
+  </body>
+</html>

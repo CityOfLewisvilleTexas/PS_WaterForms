@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TOP-004 Filter Post Backwash Profile</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1375px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <h4 class="text-center">TOP-004 Filter Post Backwash Profile - {{ months[parseInt(monthParam) - 1] + ', ' + yearParam }}</h4>
+      
+      <table class="table table-bordered table-condensed">
+        <thead>
+          <tr>
+            <th rowspan="2">Date</th>
+            <th>Filter #</th>
+            <th>Time in Service</th>
+            <th>15 Min. NTU</th>
+            <th>30 Min. NTU</th>
+            <th>4 Hr. NTU</th>
+            <th>Initials</th>
+            <th rowspan="2" class="editBtn"></th>
+          </tr>
+          
+        </thead>
+        <tbody>
+          <tr v-for="day in data" v-if="data.length > 0">
+            <td>{{ day.day.get('month') + 1 + '/' + day.day.get('date') }}</td>
+            <td>{{ day.filter_number_VSVal_ }}</td>
+            <td>{{ day.time_in_serv }}</td>
+            <td>{{ day.ntu_15_min }}</td>
+            <td>{{ day.ntu_30_min }}</td>
+            <td>{{ day.ntu_4_hrs }}</td>
+            <td>{{ day.operator }}</td>
+           
+            <td class="editBtn">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=73&record=' + day.psofia_recordid + '#96'" target="_blank" v-if="day.psofia_recordid">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=73'" target="_blank" v-if="!day.psofia_recordid">NEW</a>
+            </td>
+          </tr>
+          
+          <tr v-if="data.length === 0">
+            <td colspan="7">No Records Found For This Month.</td>
+            <td class="editBtn">
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=73'" target="_blank" v-if="!day.PSOFIA_RecordNumber">NEW</a>
+            </td>
+          </tr>
+          <tr v-else class="editBtn">
+            <td></td>
+            <td colspan="6"></td>
+            <td class="editBtn">
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=73'" target="_blank" v-if="!day.PSOFIA_RecordNumber">NEW</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js"></script>
+    <script src="../components/update.js"></script>
+  </body>
+</html>

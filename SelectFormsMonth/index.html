@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html moznomarginboxes mozdisallowselectionprint>
+  <head>
+    <meta charset="utf-8">
+    <title>Purchased Water Monthly Report</title>
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.min.css">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://momentjs.com/downloads/moment.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      #toolbar {
+          background-color: #2979FF;
+          position: fixed;
+          left: 0;
+          width: 100%;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+          text-align: left;
+          padding: 12px;
+          margin: 0px;
+      }
+
+      #toolbar-title {
+          vertical-align: middle;
+          color: white;
+          letter-spacing: 1px;
+          font-size: 20px;
+      }
+      #holder {
+          padding: 86px 24px 24px 24px;
+      }
+      .form-control {
+        display: inline !important;
+        max-width: 300px !important;
+      }
+    </style>
+
+
+  </head>
+  <body>
+    <div id="app">
+      <div class="container" align="center">
+        <div id="toolbar">
+          <span id="toolbar-title">Select Form and Month:</span>
+          <span>
+            <select v-model="selected" class="form-control">
+              <option v-for="option in options" v-bind:value="option.value">
+                {{ option.text }}
+              </option>
+            </select>
+          </span>
+          <span><datepicker v-model="dateString" v-on:input="search"></datepicker></span>
+          <span><button class="btn waves-effect waves-light" type="submit" name="action" v-on:click="search">Submit</button></span>
+        </div>
+
+        <div id="holder" v-model="data">
+          <h3>Entries for the Month of {{ months[parseInt(month) - 1] }}</h3>
+          <div v-for="submission in data" v-if="submission._Date">
+            <a :href="'http://apps/gamma/waterforms/' + selected + '/index.html?record=' + submission.PSOFIA_RecordNumber" target="_blank">{{ new Date(submission.day).toUTCString().slice(0,16) }}</a>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="../components/vue-datepicker.js"></script>
+    <script src="./main.js"></script>
+    <script src="./initializers.js"></script>
+  </body>
+</html>

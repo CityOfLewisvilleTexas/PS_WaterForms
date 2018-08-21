@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Monthly Totals</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      input {
+        border: none;
+        border-bottom: 1px solid black;
+      }
+      .tab {
+        margin-left: 5em;
+        padding-left: 5em;
+      }
+      .ul {
+        text-decoration: underline;
+      }
+      td {
+        padding-left: 2em;
+        padding-right: 2em;
+      }
+      .text-right pad-right {
+        text-align: right;
+      }
+      
+    </style>
+    <style media="print">
+      input {
+        border: none;
+        border-bottom: 1px solid black;
+      }
+      a[href]:after {
+        content: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <h4 class="text-center">MEMORANDUM</h4>
+      <div class="text-left">
+        <p><strong>TO:</strong> <a href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=76&record=ad75a9a8ead44061a35ee5c1653888aa" target="_blank">{{ personnel.sup_int }}</a>, Superintendant, Water Treatment</p>
+        <p><strong>FROM:</strong> <a href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=76&record=ad75a9a8ead44061a35ee5c1653888aa" target="_blank">{{ personnel.a_chief }}</a>, Chief Operator, Water Plant</p>
+        <p><strong>DATE:</strong> {{ date }}</p>
+        <p><strong>SUBJECT: OPERATIONS FOR THE MONTH OF {{ (month).toUpperCase() }}, {{ yearParam }}</strong></p>
+      </div>
+      
+      <br>
+      <h4 class="text-left">WATER</h4>
+      <hr>
+      <table class="table table-condensed table-striped">
+        <tbody v-if="data.length > 0">
+          <tr>
+            <td><strong>Total Finished Water Pumped</strong></td>
+            <td class="text-right pad-right">{{ columnCalc("finished").total }}</td>
+            <td>Million Gallons</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Average Finished Water Pumped</td>
+            <td class="text-right pad-right">{{ columnCalc("finished").avg }}</td>
+            <td>MGD</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Maximum Finished Water Pumped</td>
+            <td class="text-right pad-right">{{ columnCalc("finished").max }}</td>
+            <td>MGD</td>
+            <td>on {{ monthParam + "/" + pad(columnCalc("finished").indexMax, 2) + "/" + yearParam }}</td>
+          </tr>
+          <tr>
+            <td>Minimum Finished Water Pumped</td>
+            <td class="text-right pad-right">{{ columnCalc("finished").min }}</td>
+            <td>MGD</td>
+            <td>on {{ monthParam + "/" + pad(columnCalc("finished").indexMin, 2) + "/" + yearParam }}</td>
+          </tr>
+          <tr>
+            <td><strong>Dallas Treated Water Recieved</strong></td>
+            <!-- <td class="text-right pad-right">{{ calculateMonthlyMeterTotal('Lewisville') }}</td> -->
+            <td class="text-right pad-right">{{ dailyDifferences[0]['dallas_total'].toFixed(2) }}</td>
+            <td>Million Gallons</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="tab">Valley Pkwy Pump Station</td>
+            <td class="text-right pad-right">0.00</td>
+            <td>MG</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="tab">Eastside Pump Station</td>
+            <!-- <td class="text-right pad-right">{{ calculateLewMeters().esps }}</td> -->
+            <td class="text-right pad-right">{{ dailyDifferences[0]['esps_dallas_computer'].toFixed(2) }}</td>
+            <td>MG</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="tab">Eastside Booster Station</td>
+            <!-- <td class="text-right pad-right">{{ calculateLewMeters().esbs }}</td> -->
+            <td class="text-right pad-right">{{ dailyDifferences[0]['esbs_lewisville_computer'].toFixed(2) }}</td>
+            <td>MG</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="tab">Midway Pump Station</td>
+            <!-- <td class="text-right pad-right">{{ calculateLewMeters().mwps }}</td> -->
+            <td class="text-right pad-right">{{ dailyDifferences[0]['mwps_dallas_computer'].toFixed(2) }}</td>
+            <td>MG</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="tab">Southside Pump Station</td>
+            <!-- <td class="text-right pad-right">{{ calculateLewMeters().ssps }}</td> -->
+            <td class="text-right pad-right">{{ dailyDifferences[0]['ssps_dallas_computer'].toFixed(2) }}</td>
+            <td>MG</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><strong>Total Raw Water Pumped</strong></td>
+            <td class="text-right pad-right">{{ columnCalc("raw_vault").total }}</td>
+            <td>Million Gallons</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Average Raw Water Pumped</td>
+            <td class="text-right pad-right">{{ columnCalc("raw_vault").avg }}</td>
+            <td>MGD</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Maximum Raw Water Pumped</td>
+            <td class="text-right pad-right">{{ columnCalc("raw_vault").max }}</td>
+            <td>MGD</td>
+            <td>on {{ monthParam + "/" + pad(columnCalc("raw_vault").indexMax, 2) + "/" + yearParam }}</td>
+          </tr>
+          <tr>
+            <td>Minimum Raw Water Pumped</td>
+            <td class="text-right pad-right">{{ columnCalc("raw_vault").min }}</td>
+            <td>MGD</td>
+            <td>on {{ monthParam + "/" + pad(columnCalc("raw_vault").indexMin, 2) + "/" + yearParam }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <br>
+      <h4 class="text-left">Chemicals</h4>
+      <hr>
+      <table class="table table-condensed table-striped">
+        <tbody v-if="data.length > 0">
+          <tr>
+            <td>Ammonia</td>
+            <td class="text-right pad-right">{{ columnCalc('ammonia').total }}</td>
+            <td> lbs.</td>
+          </tr>
+          <tr>
+            <td>Carbon</td>
+            <td class="text-right pad-right">{{ columnCalc('carbon').total }}</td>
+            <td> lbs.</td>
+          </tr>
+          <tr>
+            <td>Chlorine</td>
+            <td class="text-right pad-right">{{ columnCalc('chlorine').total }}</td>
+            <td> lbs.</td>
+          </tr>
+          <tr>
+            <td>Ferric (Liquid)</td>
+            <td class="text-right pad-right">{{ columnCalc('ferric').total }}</td>
+            <td> lbs.</td>
+          </tr>
+          <tr>
+            <td>Fluoride</td>
+            <td class="text-right pad-right">0.00</td>
+            <td> lbs.</td>
+          </tr>
+          <tr>
+            <td>Lime</td>
+            <td class="text-right pad-right">{{ columnCalc('lime').total }}</td>
+            <td> lbs.</td>
+          </tr>
+          <tr>
+            <td>Polymer</td>
+            <td class="text-right pad-right">{{ columnCalc('polymer').total }}</td>
+            <td> lbs.</td>
+          </tr>
+<!--
+          <tr>
+            <td>Caustic</td>
+            <td class="text-right pad-right">0.00</td>
+            <td> lbs.</td>
+          </tr>
+-->
+          <tr>
+            <td>Bleach</td>
+            <td class="text-right pad-right">{{ columnCalc("bleachTotal").total }}</td>
+            <td> lbs.</td>
+          </tr>
+          <tr>
+            <td>LAS</td>
+            <td class="text-right pad-right">{{ columnCalc("lasTotal").total }}</td>
+            <td> lbs.</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <br>
+      <h4 class="text-left">Utilities</h4>
+      <hr>
+      <div v-if="data.length > 0">
+        <div v-if="electricalData.length >= parseInt(monthParam)">
+          <table class="table table-condensed table-striped">
+            <tbody>
+              <tr>
+                <td>Plant Kilowatts</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('plant', parseInt(monthParam) - 1) }} x 300 =</td>
+                <td class="text-right pad-right">{{ (calculateDiffElect('plant', parseInt(monthParam) - 1) * 300) }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>WTP Security Lighting**</td>
+                <td></td>
+                <td class="text-right pad-right">{{ calculateDiffElect('sec_lights', parseInt(monthParam) - 1) }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>Intake Kilowatts</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('int', parseInt(monthParam) - 1) }} x 80 =</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('int', parseInt(monthParam) - 1) * 80 }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>New Intake UTRWD</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('uti', parseInt(monthParam) - 1) }} x 400 =</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('uti', parseInt(monthParam) - 1) * 400 }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>Northside Pump Station Kilowatts</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('nsps', parseInt(monthParam) - 1) }} x 300 =</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('nsps', parseInt(monthParam) - 1) * 300 }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>1171 Booster Station Kilowatts</td>
+                <td></td>
+                <td class="text-right pad-right">{{ calculateDiffElect('wmps', parseInt(monthParam) - 1) }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>Valley Parkway Pump Station Kilowatts</td>
+                <td></td>
+                <td class="text-right pad-right">{{ calculateDiffElect('valley_pkwy', parseInt(monthParam) - 1) }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>Old Orchard Pump Station Kilowatts</td>
+                <td></td>
+                <td class="text-right pad-right">{{ calculateDiffElect('oops', parseInt(monthParam) - 1) }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>No. 1 Overhead Kilowatts</td>
+                <td></td>
+                <td class="text-right pad-right">{{ calculateDiffElect('ovhd1', parseInt(monthParam) - 1) }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>No. 2 (Bellaire) Overhead Kilowatts</td>
+                <td>{{  }}</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('ovhd2', parseInt(monthParam) - 1) }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>No. 3 Overhead Kilowatts</td>
+                <td></td>
+                <td class="text-right pad-right">{{ calculateDiffElect('ovhd3', parseInt(monthParam) - 1) }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>No. 4 Overhead Kilowatts</td>
+                <td></td>
+                <td class="text-right pad-right">{{ calculateDiffElect('ovhd4', parseInt(monthParam) - 1) }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>No. 5 Overhead Kilowatts</td>
+                <td></td>
+                <td class="text-right pad-right">{{ calculateDiffElect('ovhd5', parseInt(monthParam) - 1) }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>Eastside Pump Station</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('esps', parseInt(monthParam) - 1) }} x 80 =</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('esps', parseInt(monthParam) - 1) * 80 }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>Southside Pump Station</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('ssps', parseInt(monthParam) - 1) }} x 300 =</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('ssps', parseInt(monthParam) - 1) * 300 }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>Midway Pump Station Pump Station</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('mwps', parseInt(monthParam) - 1) }} x 400 =</td>
+                <td class="text-right pad-right">{{ calculateDiffElect('mwps', parseInt(monthParam) - 1) * 400 }}</td>
+                <td> kW</td>
+              </tr>
+              <tr>
+                <td>Natural Gas</td>
+                <td></td>
+                <td class="text-right pad-right">{{ calculateDiffElect('gas', parseInt(monthParam) - 1) }}</td>
+                <td> cu ft</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else>
+          {{ alert("No Electrical Data for this Month.") }}
+        </div>
+      </div>
+      
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.0.2"></script>
+  </body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Electrical Readings</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style>
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid" id="app">
+      <h3>{{ yearParam }} Electrical Readings</h3>
+      <table class="table table-bordered table-condensed">
+        <thead>
+          <tr>
+            <th rowspan="2">Month</th>
+            <th colspan="2">OVHD #1</th>
+            <th colspan="2">OVHD #2</th>
+            <th colspan="2">OVHD #3</th>
+            <th colspan="2">OVHD #4</th>
+            <th colspan="2">OVHD #5</th>
+            <th colspan="2">Valley Pkwy</th>
+            <th colspan="2">Windmere</th>
+            <th colspan="2">Old Orchard</th>
+            <th colspan="2">Intake</th>
+            <th colspan="2">UTI</th>
+            <th colspan="2">ESPS</th>
+            <th colspan="2">NSPS</th>
+            <th colspan="2">SSPS</th>
+            <th colspan="2">MWPS</th>
+            <th colspan="2">Security Lights</th>
+            <th colspan="2">Camera</th>
+            <th colspan="2">Gas</th>
+            <th colspan="2">Plant</th>
+          </tr>
+          <tr>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+            <th>Reading</th>
+            <th>Monthly</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(month, index) in data">
+            <td>{{ months[index] }}</td>
+            <td>{{ month.ovhd1 }}</td>
+            <td>{{ getDifference("ovhd1", index) }}</td>
+            <td>{{ month.ovhd2 }}</td>
+            <td>{{ getDifference("ovhd2", index) }}</td>
+            <td>{{ month.ovhd3 }}</td>
+            <td>{{ getDifference("ovhd3", index) }}</td>
+            <td>{{ month.ovhd4 }}</td>
+            <td>{{ getDifference("ovhd4", index) }}</td>
+            <td>{{ month.ovhd5 }}</td>
+            <td>{{ getDifference("ovhd5", index) }}</td>
+            <td>{{ month.valley_pkwy }}</td>
+            <td>{{ getDifference("valley_pkwy", index) }}</td>
+            <td>{{ month.wmps }}</td>
+            <td>{{ getDifference("wmps", index) }}</td>
+            <td>{{ month.oops }}</td>
+            <td>{{ getDifference("oops", index) }}</td>
+            <td>{{ month.int }}</td>
+            <td>{{ getDifference("int", index) }}</td>
+            <td>{{ month.uti }}</td>
+            <td>{{ getDifference("uti", index) }}</td>
+            <td>{{ month.esps }}</td>
+            <td>{{ getDifference("esps", index) }}</td>
+            <td>{{ month.nsps }}</td>
+            <td>{{ getDifference("nsps", index) }}</td>
+            <td>{{ month.ssps }}</td>
+            <td>{{ getDifference("ssps", index) }}</td>
+            <td>{{ month.mwps }}</td>
+            <td>{{ getDifference("mwps", index) }}</td>
+            <td>{{ month.sec_lights }}</td>
+            <td>{{ getDifference("sec_lights", index) }}</td>
+            <td>{{ month.cam }}</td>
+            <td>{{ getDifference("cam", index) }}</td>
+            <td>{{ month.gas }}</td>
+            <td>{{ getDifference("gas", index) }}</td>
+            <td>{{ month.plant }}</td>
+            <td>{{ getDifference("plant", index) }}</td>
+            <td class="editBtn">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=54&record=' + month.psofia_recordid + '#96'" target="_blank" v-if="month.psofia_recordid">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=54'" target="_blank" v-if="!month.psofia_recordid">NEW</a>
+            </td>
+          </tr>
+          <tr class="bg-success">
+            <th>Total</th>
+            <td></td>
+            <td>{{ getAdjustedTotal("ovhd1") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("ovhd2") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("ovhd3") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("ovhd4") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("ovhd5") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("valley_pkwy") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("wmps") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("oops") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("int") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("uti") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("esps") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("nsps") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("ssps") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("mwps") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("sec_lights") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("cam") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("gas") }}</td>
+            <td></td>
+            <td>{{ getAdjustedTotal("plant") }}</td>
+            <td class="editBtn">
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=54'" target="_blank">NEW</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <button id="download-csv" v-on:click="exportTableToCSV('electrical_readings.csv')">Download Excel File</button>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.0"></script>
+  </body>
+</html>

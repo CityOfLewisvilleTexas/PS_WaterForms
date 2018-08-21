@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html moznomarginboxes mozdisallowselectionprint>
+  <head>
+    <meta charset="utf-8">
+    <title>Purchased Water Monthly Report</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <style media="screen">
+
+      table {
+        max-width: 8in;
+        border-collapse: collapse;
+        font-size: 0.8em;
+      }
+
+      table div {
+        max-width: 6in;
+      }
+      table th {
+        text-align: center;
+      }
+      .container-fluid {
+        text-align: center;
+      }
+
+      .grayBackground {
+        background-color: gray;
+      }
+
+      .underlined {
+        text-decoration: underline;
+      }
+
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+      }
+
+      .fineprint {
+        font-size: 0.7em;
+      }
+
+      .center {
+        margin: 0 auto;
+      }
+
+    </style>
+
+  </head>
+  <body>
+    <div id="app">
+      <div class="container-fluid" align="center">
+        <div class="card main-card">
+          <table class="table table-bordered table-condensed">
+            <thead>
+    					<tr>
+    						<th colspan="7" class=""><h1>MONTHLY OPERATING REPORT</h1></th>
+    					</tr>
+              <tr>
+    						<th colspan="7" class="">
+                  <div class="center">
+      						  FOR PUBLIC WATER SYSTEMS THAT ARE USING GROUNDWATER SOURCES OR ARE PURCHASING TREATED WATER FROM ANOTHER PUBLIC WATER SYSTEM
+      						</div>
+                </th>
+    					</tr>
+              <tr>
+    						<td colspan="4" class="">
+                  <div class="center">
+      						  Public Water System Name: ____<span class="underlined">City of Lewisville</span>_____
+      						</div>
+                </td>
+                <td colspan="3" class="">
+                  <div class="center">
+                    PWS ID No.<span class="underlined">__610004__</span>
+      						</div>
+                </td>
+    					</tr>
+
+              <tr>
+    						<td colspan="1" class="">
+                  <div class="center">
+      						  Report for the Month of:
+      						</div>
+                </td>
+                <td colspan="2" class="">
+                  <div class="">
+      						  __<span class="underlined">{{ month }}</span>__
+      						</div>
+                </td>
+                <td colspan="3" class="">
+                  <div class="center">
+                    Number of Active Service Connections this Month:
+      						</div>
+                </td>
+                <td colspan="1" class="">
+                  <div class="">
+                    <span class="underlined">__{{ parseInt(header.connections).toLocaleString() }}__</span>
+      						</div>
+                </td>
+    					</tr>
+              <tr><th colspan="7"></th></tr>
+              <tr>
+                <th colspan="2" class="grayBackground"></th>
+                <th colspan="3">WATER PRODUCTION</th>
+                <th colspan="2" class="grayBackground"></th>
+              </tr>
+              <tr>
+                <th rowspan="2">Date</th>
+                <th colspan="6">Pumpage to storage and distribution X 1000 Gals</th>
+              </tr>
+              <tr>
+                <th>From Wells Directly to Distr.</th>
+                <th>From Wells to Storage Tanks</th>
+                <th>Purchased Water Directly to Distr.</th>
+                <th>Purchased Water into Storage</th>
+                <th>From SWTP or GWUDI Plant</th>
+                <th>Total Daily Production</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(date, index) in data">
+                <td>{{ formatDate(date.day) }}</td>
+                <td class="grayBackground"></td>
+                <td class="grayBackground"></td>
+                <td class="grayBackground"></td>
+                <td>{{ dallasTotals(index) }}</td>
+                <td>{{ getDifference("Raw_Vault", index) }}</td>
+                <td>{{ sumRow(index) }}</td>
+              </tr>
+              <tr>
+                <th>Total</th>
+                <td class="grayBackground"></td>
+                <td class="grayBackground"></td>
+                <td class="grayBackground"></td>
+                <td>{{ columnCalc("Dallas").total }}</td>
+                <td>{{ columnCalc("Plant").total }}</td>
+                <td>{{ columnCalc("Total").total }}</td>
+              </tr>
+              <tr>
+                <th>Avg</th>
+                <td class="grayBackground"></td>
+                <td class="grayBackground"></td>
+                <td class="grayBackground"></td>
+                <td>{{ columnCalc("Dallas").avg }}</td>
+                <td>{{ columnCalc("Plant").avg }}</td>
+                <td>{{ columnCalc("Total").avg }}</td>
+              </tr>
+              <tr>
+                <th>Max</th>
+                <td class="grayBackground"></td>
+                <td class="grayBackground"></td>
+                <td class="grayBackground"></td>
+                <td>{{ columnCalc("Dallas").max }}</td>
+                <td>{{ columnCalc("Plant").max }}</td>
+                <td>{{ columnCalc("Total").max }}</td>
+              </tr>
+              <tr>
+                <th>Min</th>
+                <td class="grayBackground"></td>
+                <td class="grayBackground"></td>
+                <td class="grayBackground"></td>
+                <td>{{ columnCalc("Dallas").min }}</td>
+                <td>{{ columnCalc("Plant").min }}</td>
+                <td>{{ columnCalc("Total").min }}</td>
+              </tr>
+              <tr></tr>
+            </tbody>
+            <tfoot>
+              <tr><td colspan="7">Any addition information you wish to provide: ____________________________________________________________________________________________</td></tr>
+              <tr><td colspan="7">_______________________________________________________________________________________________________________________________________</td></tr>
+              <tr><td colspan="7">_______________________________________________________________________________________________________________________________________</td></tr>
+              <tr><td colspan="7">_______________________________________________________________________________________________________________________________________</td></tr>
+              <tr><td colspan="7">I certify that I am familiar with the information contained in this report and that, to the best of my knowledge, the information is true, complete, and accurate.</td></tr>
+              <tr>
+                <td colspan="7">Operator's Signature:__________________________________________________________________________________________Date:____________________________</td>
+              </tr>
+              <tr>
+                <td colspan="7">Certificate No. and Class:_______________________________________________________________________________________________________________________</td>
+              </tr>
+              <tr class="fineprint">
+                <td>TCEQ - 0811  (DRAFT 7-4-06)</td>
+                <td colspan="5"></td>
+                <td>GW-PWMOR</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <button id="download-csv" v-on:click="exportTableToCSV('pwmor.csv')">Download Excel File</button>
+    </div>
+    <script src="./main.js?v=1.2"></script>
+  </body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Meter Reading Worksheet</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <style media="screen">
+
+      table {
+        max-width: 8in;
+        border-collapse: collapse;
+      }
+
+      table div {
+        max-width: 6in;
+      }
+      table th {
+        text-align: center;
+      }
+
+      table td {
+        font-size: 8pt;
+      }
+
+      .nav, .navbar {
+        background-color: lightblue !important;
+      }
+
+      .container-fluid {
+        text-align: center;
+      }
+
+      .grayBackground {
+        background-color: darkgray;
+      }
+
+      .underlined {
+        text-decoration: underline;
+      }
+
+      .padLeft {
+        padding-left: 15mm;
+      }
+
+      .wrap {
+        max-width: 100px;
+        display: inline;
+      }
+      .center {
+        margin: 0 auto;
+      }
+
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+      }
+      
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+
+      .comments {
+        height: 20px;
+      }
+      
+      .highlight {
+        background-color: yellow !important;
+      }
+      
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+
+      thead tr:nth-of-type(2) th {
+  			font-size: .8em;
+  		}
+      thead tr:nth-of-type(4) th {
+  			font-size: .8em;
+  		}
+      @media print {
+        .padLeft {
+          padding-left: 15mm;
+        }
+  		}
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <button id="download-csv" v-on:click="exportTableToCSV('water_usage.csv')" style="position:fixed;">Download Excel File</button>
+      <div class="card main-card" v-for="month in data">
+        <h3 class="text-center">{{ months[parseInt(month[0]._Date.split('/')[0]) - 1] }} Water Usage</h3>
+
+        <monthly-table v-bind:month="month"></monthly-table>
+        
+      </div>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+
+
+
+    <script type="text/x-template" id="monthly-table-template">
+      <table class="table table-bordered table-condensed">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Plant</th>
+              <th>NSPS</th>
+              <th>Plant Total</th>
+              <th>ESPS</th>
+              <th>ESBS</th>
+              <th>MWPS</th>
+              <th>SSPS</th>
+              <th>Dallas Total</th>
+              <th>Total Pumpage</th>
+              <th>Lake Elevation</th>
+              <th>Raw Water</th>
+              <!-- <th class="editBtn"></th> -->
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(date, index) in month" >
+              <td>{{ date._Date }}</td>
+              <td>{{ date.Finished }}</td>
+              <td>{{ date.NS_Vault }}</td>
+              <td class="bg-info">{{ date.Plant_Total }}</td>
+              <td>{{ date.ESPS_Dallas_Computer }}</td>
+              <td>{{ date.ESBS_Lewisville_Computer }}</td>
+              <td>{{ date.MWPS_Dallas_Computer }}</td>
+              <td>{{ date.SSPS_Dallas_Computer }}</td>
+              <td class="bg-info">{{ date.Dallas_Total }}</td>
+              <td class="bg-warning">{{ date.Total_Pumpage }}</td>
+              <td>{{ date.level }}</td>
+              <td>{{ date.Raw_Vault }}</td>
+              <!-- <td class="editBtn">
+                <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=50&record=' + date.PSOFIA_RecordNumber + '#96'" target="_blank" v-if="date.PSOFIA_RecordNumber">EDIT</a>
+                <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=50'" target="_blank" v-if="!date.PSOFIA_RecordNumber">NEW</a>
+              </td> -->
+            </tr>
+            <tr class="grayBackground">
+              <th></th>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <!-- <td class="editBtn"></td> -->
+            </tr>
+            <tr class="bg-danger">
+              <th>Totals</th>
+              <td>{{ month[0].Finished_Total }}</td>
+              <td>{{ month[0].NS_Vault_Total }}</td>
+              <td>{{ month[0].Plant_Total_Total }}</td>
+              <td>{{ month[0].ESPS_Dallas_Total }}</td>
+              <td>{{ month[0].ESBS_Dallas_Total }}</td>
+              <td>{{ month[0].MWPS_Dallas_Total }}</td>
+              <td>{{ month[0].SSPS_Dallas_Total }}</td>
+              <td>{{ month[0].Dallas_Total_Total }}</td>
+              <td>{{ month[0].Total_Pumpage_Total }}</td>
+              <td></td>
+              <td>{{ month[0].Raw_Vault_Total }}</td>
+              <!-- <td class="editBtn"></td> -->
+            </tr>
+            <tr class="bg-success">
+              <th>Average</th>
+              <td>{{ month[0].Finished_Avg }}</td>
+              <td>{{ month[0].NS_Vault_Avg }}</td>
+              <td>{{ month[0].Plant_Total_Avg }}</td>
+              <td>{{ month[0].ESPS_Dallas_Avg }}</td>
+              <td>{{ month[0].ESBS_Dallas_Avg }}</td>
+              <td>{{ month[0].MWPS_Dallas_Avg }}</td>
+              <td>{{ month[0].SSPS_Dallas_Avg }}</td>
+              <td>{{ month[0].Dallas_Total_Avg }}</td>
+              <td>{{ month[0].Total_Pumpage_Avg }}</td>
+              <td>{{ month[0].level_Avg }}</td>
+              <td>{{ month[0].Raw_Vault_Avg }}</td>
+              <!-- <td class="editBtn"></td> -->
+            </tr>
+            <tr class="bg-warning">
+              <th>Max</th>
+              <td>{{ month[0].Finished_Max }}</td>
+              <td>{{ month[0].NS_Vault_Max }}</td>
+              <td>{{ month[0].Plant_Total_Max }}</td>
+              <td>{{ month[0].ESPS_Dallas_Max }}</td>
+              <td>{{ month[0].ESBS_Dallas_Max }}</td>
+              <td>{{ month[0].MWPS_Dallas_Max }}</td>
+              <td>{{ month[0].SSPS_Dallas_Max }}</td>
+              <td>{{ month[0].Dallas_Total_Max }}</td>
+              <td>{{ month[0].Total_Pumpage_Max }}</td>
+              <td>{{ month[0].level_Max }}</td>
+              <td>{{ month[0].Raw_Vault_Max }}</td>
+              <!-- <td class="editBtn"></td> -->
+            </tr>
+            <tr class="bg-info">
+              <th>Min</th>
+              <td>{{ month[0].Finished_Min }}</td>
+              <td>{{ month[0].NS_Vault_Min }}</td>
+              <td>{{ month[0].Plant_Total_Min }}</td>
+              <td>{{ month[0].ESPS_Dallas_Min }}</td>
+              <td>{{ month[0].ESBS_Dallas_Min }}</td>
+              <td>{{ month[0].MWPS_Dallas_Min }}</td>
+              <td>{{ month[0].SSPS_Dallas_Min }}</td>
+              <td>{{ month[0].Dallas_Total_Min }}</td>
+              <td>{{ month[0].Total_Pumpage_Min }}</td>
+              <td>{{ month[0].level_Min }}</td>
+              <td>{{ month[0].Raw_Vault_Min }}</td>
+              <!-- <td class="editBtn"></td> -->
+            </tr>
+          </tbody>
+        </table>
+    </script>
+    <script src="./monthlyTableComponent.js?v=1.0.0"></script>
+    <script src="./main.js?v=1.2"></script>
+  </body>
+</html>

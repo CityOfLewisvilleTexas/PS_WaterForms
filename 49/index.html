@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Fluoride</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <style media="screen">
+      td {
+        padding-left: 20px;
+      }
+      .card-group {
+        padding: 20px;
+      }
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="card main-card">
+        <div class="card-group">
+          <div class="card">
+            <h3 class="card-header">Corps Information</h3>
+            <div class="card-block">
+              <h4 class="card-title">Lake Elevation</h4>
+              <p class="card-text">{{ data.lake_elev || "N/A" }}</p>
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="card-header">Clarifier NTU</h3>
+            <div class="card-block">
+              <table>
+                <tbody>
+                  <tr>
+                    <th>Clarifier #1</th>
+                    <td>{{ data.clar_1 || "N/A" }}</td>
+                  </tr>
+                  <tr>
+                    <th>Clarifier #2</th>
+                    <td>{{ data.clar_2 || "N/A" }}</td>
+                  </tr>
+                  <tr>
+                    <th>Clarifier #3</th>
+                    <td>{{ data.clar_3 || "N/A" }}</td>
+                  </tr>
+                  <tr>
+                    <th>Clarifier #4</th>
+                    <td>{{ data.clar_4 || "N/A" }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div> <!-- end row one -->
+
+        <div class="card-group">
+          <div class="card">
+            <h3 class="card-header">Lab Results</h3>
+            <div class="card-block">
+              <table>
+                <tbody>
+                  <tr>
+                    <th>Raw Fluoride</th>
+                    <td>{{ data.raw_fluoride || "N/A" }}</td>
+                  </tr>
+                  <tr>
+                    <th>Finished Fluoride</th>
+                    <td>{{ data.fin_fluoride || "N/A" }}</td>
+                  </tr>
+                  <tr>
+                    <th>Raw Water D.O.</th>
+                    <td>{{ data.raw_water_DO || "N/A" }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="card-header">Plant Results</h3>
+            <div class="card-block">
+              <table>
+                <tbody>
+                  <tr>
+                    <th>Raw Water</th>
+                    <td>{{ data.raw_fluoride_plant || "N/A" }}</td>
+                  </tr>
+                  <tr>
+                    <th>Finished Water</th>
+                    <td>{{ data.fin_fluoride_plant || "N/A" }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="card-header">Fluoride Averages</h3>
+            <div class="card-block">
+              <table>
+                <tbody>
+                  <tr>
+                    <th>Raw Water</th>
+                    <td>{{ average().raw }}</td>
+                  </tr>
+                  <tr>
+                    <th>Finished Water</th>
+                    <td>{{ average().finished }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div> <!-- End row two -->
+      </div>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js"></script>
+  </body>
+</html>

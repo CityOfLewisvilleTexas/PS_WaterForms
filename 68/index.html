@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>WTP-028 Fluoride, pH Probe, and Turbidimeter Calibration</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1375px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      .red {
+        color: red;
+      }
+      .highlight {
+        background-color: yellow !important;
+      }
+      
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+      
+      /* Scrollable table body */
+      .table-fixed tbody {
+          display:block;
+          height:700px;
+          overflow:auto;
+      }
+      .table-fixed thead, tbody tr {
+          display:table;
+          width:100%;
+          table-layout:fixed;
+      }
+      .table-fixed thead {
+          width: calc( 100% - 1em );
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <h4 class="text-center">WTP-028 Fluoride, pH Probe, and Turbidimeter Calibration</h4>
+      <h4 class="editBtn red">If an entry already exists for the day, do not add a new entry, click the edit button to update entry.</h4>
+      <table class="table table-fixed table-bordered table-condensed">
+        <thead>
+          <tr>
+            <th colspan="2" rowspan="2">{{ year }}</th>
+            <th colspan="2">Fluoride W/DR 4000</th>
+            <th colspan="4">Online pH Probes</th>
+            <th colspan="3">Turbidimeter</th>
+            <th colspan="8">pH Meter</th>
+            <th class="editBtn"></th>
+          </tr>
+          <tr>
+            <th>Finish Water</th>
+            <th>Raw Water</th>
+            <th colspan="2">Pre pH Checks</th>
+            <th colspan="2">Post pH Checks</th>
+            <th>Scale 10 NTU</th>
+            <th>Scale 20 NTU</th>
+            <th>Scale 600 NTU</th>
+<!--            <th>Scale 1.8 NTU</th>-->
+<!--            <th>Scale 18.0 NTU</th>-->
+<!--            <th>Scale 180.0 NTU</th>-->
+<!--            <th>Scale 1800.0 NTU</th>-->
+            <th colspan="2">pH-4 Buffer</th>
+            <th colspan="2">pH-7 Buffer</th>
+            <th colspan="2">pH-10 Buffer</th>
+            <th rowspan="2">Slope</th>
+            <th>Probe</th>
+            <th class="editBtn"></th>
+          </tr>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Fluoride</th>
+            <th>Fluoride</th>
+            <th>SCADA Reading</th>
+            <th>Bench Top Reading</th>
+            <th>SCADA Reading</th>
+            <th>Bench Top Reading</th>
+            <th>Reading</th>
+            <th>Reading</th>
+            <th>Reading</th>
+<!--            <th>Reading</th>-->
+            <th>Reading</th>
+            <th>Calibrate To</th>
+            <th>Reading</th>
+            <th>Calibrate To</th>
+            <th>Reading</th>
+            <th>Calibrate To</th>
+            <th>Service Date</th>
+            <th class="editBtn"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="day in data">
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.day.get('month') + 1 + '/' + day.day.get('date') }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day._Time }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.fin_fluoride_plant }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.raw_fluoride_plant }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.pre_ph_scada }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.pre_ph_bench }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.post_ph_scada }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.post_ph_bench }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ntu_10_reading }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ntu_20_reading }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ntu_600_reading }}</td>
+<!--            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ntu_1800_reading }}</td>-->
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ph_4_reading }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ph_4_calibrate }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ph_7_reading }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ph_7_calibrate }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ph_10_reading }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ph_10_calibrate }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.ph_slope }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ (day.ph_probe_date === 'Invalid date' ? '' : day.ph_probe_date) }}</td>
+            <td class="editBtn" :class="{ highlight: (day.day.get('date') === today.get('date')) }">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=68&record=' + day.PSOFIA_RecordNumber + '#96'" target="_blank" v-if="day.PSOFIA_RecordNumber">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=68'" target="_blank" v-if="!day.PSOFIA_RecordNumber">NEW</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <button id="download-csv" v-on:click="exportTableToCSV('flouride_ph_probe_calibration.csv')">Download Excel File</button>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js"></script>
+    <script src="../components/update.js?v=1.1"></script>
+  </body>
+</html>

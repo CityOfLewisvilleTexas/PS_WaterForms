@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Yearly Composite Report - WTP-040</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style>
+      .redText {
+        color: red;
+      }
+      th {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid" id="app">
+      <h3 class="text-center">{{ yearParam }} Yearly Composite Report</h3>
+      
+      <ul class="nav nav-tabs">
+				<li :class="(currentTab == 'totals') ? 'active': '' "><a href="#" v-on:click="changeTab('totals')">Total</a></li>
+				<li :class="(currentTab == 'avg') ? 'active': '' "><a href="#" v-on:click="changeTab('avg')">Avg</a></li>
+			</ul>
+      
+      <div class="tab-content" >
+        <div id="totals" class="tab-pane fade" v-bind:class="{'active': currentTab == 'totals', 'in': currentTab == 'totals' }" v-show="currentTab == 'totals'">
+          <i v-show="loading" class="fa fa-spinner fa-spin fa-align-center" style="font-size:32px"></i>
+          <table class="table table-bordered table-condensed" v-if="data.length != 0">
+            <thead>
+              <tr>
+                <th rowspan="3">Month</th>
+                <th colspan="9">HSP Hours</th>
+                <th colspan="9">RWP Hours</th>
+                <th colspan="8"></th>
+              </tr>
+              <tr>
+                <th colspan="5">HS Pump House</th>
+                <th colspan="4">NSPS</th>
+                <th colspan="6">Lewisville Intake</th>
+                <th colspan="3">UT Intake</th>
+                <th rowspan="2">Finish Meter</th>
+                <th rowspan="2">Pipe Galley</th>
+                <th colspan="3">Raw Water</th>
+                <th rowspan="2">Reclaim Total</th>
+                <th rowspan="2">Nat. Gas</th>
+                <th rowspan="2">Kilowatts</th>
+              </tr>
+              <tr>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+                <th>6</th>
+                <th>7</th>
+                <th>8</th>
+                <th>9</th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+                <th>6</th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>North</th>
+                <th>South</th>
+                <th>Vault</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(month, index) in data">
+                <td>{{ formatDate(month._date) }}</td>
+                <td>{{ month.hsp1.total }}</td>
+                <td>{{ month.hsp2.total }}</td>
+                <td>{{ month.hsp3.total }}</td>
+                <td>{{ month.hsp4.total }}</td>
+                <td>{{ month.hsp5.total }}</td>
+                <td>{{ month.nsps6.total }}</td>
+                <td>{{ month.nsps7.total }}</td>
+                <td>{{ month.nsps8.total }}</td>
+                <td>{{ month.nsps9.total }}</td>
+                <td>{{ month.int_1.total }}</td>
+                <td>{{ month.int_2.total }}</td>
+                <td>{{ month.int_3.total }}</td>
+                <td>{{ month.int_4.total }}</td>
+                <td>{{ month.int_5.total }}</td>
+                <td>{{ month.int_6.total }}</td>
+                <td>{{ month.uti_1.total }}</td>
+                <td>{{ month.uti_2.total }}</td>
+                <td>{{ month.uti_3.total }}</td>
+                <td>{{ month.finished.total }}</td>
+                <td>{{ month.north_raw.total }}</td>
+                <td>{{ month.north_raw.total }}</td>
+                <td>{{ month.s_raw.total }}</td>
+                <td>{{ month.raw_vault.total }}</td>
+                <td>{{ month.reclaim.total }}</td>
+                <td>{{ month.gas.total }}</td>
+                <td>{{ month.plant_electrical.total }}</td>
+              </tr>
+              <tr class="bg-warning">
+                <th>Totals</th>
+                <td>{{ sumColumn('hsp1', 'total') }}</td>
+                <td>{{ sumColumn('hsp2', 'total') }}</td>
+                <td>{{ sumColumn('hsp3', 'total') }}</td>
+                <td>{{ sumColumn('hsp4', 'total') }}</td>
+                <td>{{ sumColumn('hsp5', 'total') }}</td>
+                <td>{{ sumColumn('nsps6', 'total') }}</td>
+                <td>{{ sumColumn('nsps7', 'total') }}</td>
+                <td>{{ sumColumn('nsps8', 'total') }}</td>
+                <td>{{ sumColumn('nsps9', 'total') }}</td>
+                <td>{{ sumColumn('int_1', 'total') }}</td>
+                <td>{{ sumColumn('int_2', 'total') }}</td>
+                <td>{{ sumColumn('int_3', 'total') }}</td>
+                <td>{{ sumColumn('int_4', 'total') }}</td>
+                <td>{{ sumColumn('int_5', 'total') }}</td>
+                <td>{{ sumColumn('int_6', 'total') }}</td>
+                <td>{{ sumColumn('uti_1', 'total') }}</td>
+                <td>{{ sumColumn('uti_2', 'total') }}</td>
+                <td>{{ sumColumn('uti_3', 'total') }}</td>
+                <td>{{ sumColumn('finished', 'total') }}</td>
+                <td>{{ sumColumn('north_raw', 'total') }}</td>
+                <td>{{ sumColumn('north_raw', 'total') }}</td>
+                <td>{{ sumColumn('s_raw', 'total') }}</td>
+                <td>{{ sumColumn('raw_vault', 'total') }}</td>
+                <td>{{ sumColumn('reclaim', 'total') }}</td>
+                <td>{{ sumColumn('gas', 'total') }}</td>
+                <td>{{ sumColumn('plant_electrical', 'total') }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <br>
+          <table class="table table-bordered table-condensed" v-if="data.length != 0">
+            <thead>
+              <tr>
+                <th rowspan="2">Month</th>
+                <th colspan="10">Chemical Lbs.</th>
+                <th colspan="8">Filter Run Hours</th>
+                <th rowspan="2">Gallons Used</th>
+                <th rowspan="2"># Filters Washed</th>
+              </tr>
+              <tr>
+                <th>Ferric</th>
+                <th>Lime</th>
+                <th>Chlorine</th>
+                <th>Ammonia</th>
+                <th>Fluoride</th>
+                <th>Carbon</th>
+                <th>Polymer</th>
+                <th>Bleach</th>
+                <th>LAS</th>
+                <th>Caustic</th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+                <th>6</th>
+                <th>7</th>
+                <th>8</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(month, index) in data">
+                <td>{{ formatDate(month._date) }}</td>
+                <td>{{ month.ferric.total }}</td>
+                <td>{{ month.lime.total }}</td>
+                <td>{{ month.chlorine.total }}</td>
+                <td>{{ month.ammonia.total }}</td>
+                <td>0</td>
+                <td>{{ month.carbon.total }}</td>
+                <td>{{ month.polymer.total }}</td>
+                <td>{{ month.bleachtotal.total }}</td>
+                <td>{{ month.lastotal.total }}</td>
+                <td>0</td>
+                <td>{{ month.filt1_hrs.total }}</td>
+                <td>{{ month.filt2_hrs.total }}</td>
+                <td>{{ month.filt3_hrs.total }}</td>
+                <td>{{ month.filt4_hrs.total }}</td>
+                <td>{{ month.filt5_hrs.total }}</td>
+                <td>{{ month.filt6_hrs.total }}</td>
+                <td>{{ month.filt7_hrs.total }}</td>
+                <td>{{ month.filt8_hrs.total }}</td>
+                <td>{{ month.gallonsused.total }}</td>
+                <td>{{ month.numberwashed.total }}</td>
+              </tr>
+              <tr class="bg-warning">
+                <th>Totals</th>
+                <td>{{ sumColumn('ferric', 'total') }}</td>
+                <td>{{ sumColumn('lime', 'total') }}</td>
+                <td>{{ sumColumn('chlorine', 'total') }}</td>
+                <td>{{ sumColumn('ammonia', 'total') }}</td>
+                <td>0.0</td>
+                <td>{{ sumColumn('carbon', 'total') }}</td>
+                <td>{{ sumColumn('polymer', 'total') }}</td>
+                <td>{{ sumColumn('bleachtotal', 'total') }}</td>
+                <td>{{ sumColumn('lastotal', 'total') }}</td>
+                <td>0.0</td>
+                <td>{{ sumColumn('filt1_hrs', 'total') }}</td>
+                <td>{{ sumColumn('filt2_hrs', 'total') }}</td>
+                <td>{{ sumColumn('filt3_hrs', 'total') }}</td>
+                <td>{{ sumColumn('filt4_hrs', 'total') }}</td>
+                <td>{{ sumColumn('filt5_hrs', 'total') }}</td>
+                <td>{{ sumColumn('filt6_hrs', 'total') }}</td>
+                <td>{{ sumColumn('filt7_hrs', 'total') }}</td>
+                <td>{{ sumColumn('filt8_hrs', 'total') }}</td>
+                <td>{{ sumColumn('gallonsused', 'total') }}</td>
+                <td>{{ sumColumn('numberwashed', 'total') }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <br>
+          <ul>
+            <li>Approximate Number of Poly Barrels (based on specific gravity of 1.02 and full 55 gallon drums): {{ polyBarrels }}</li>
+            <li>Total Number of Carbon Bags: {{ carbonBags }}</li>
+            <li>Total Number of Carbon Pallets: {{ carbonPallets }}</li>
+          </ul>
+          
+        </div>
+
+        <div id="avg" class="tab-pane fade" v-bind:class="{'active': currentTab == 'avg', 'in': currentTab == 'avg' }" v-show="currentTab == 'avg'">
+          <i v-show="loading" class="fa fa-spinner fa-spin fa-align-center" style="font-size:32px"></i>
+          <table class="table table-bordered table-condensed" v-if="data.length != 0">
+            <thead>
+              <tr>
+                <th rowspan="2">Month</th>
+                <th rowspan="2">Lake Level</th>
+                <th colspan="2">Temp</th>
+                <th colspan="5">Raw Water</th>
+                <th colspan="5">Settled Water</th>
+                <th colspan="5">Filtered</th>
+                <th colspan="5">Finished</th>
+                <th colspan="2">Fluoride Residual</th>
+                <th colspan="7">Chemicals Avg. mg/L</th>
+              </tr>
+              <tr>
+                <th>F</th>
+                <th>C</th>
+                <th>pH</th>
+                <th>PA</th>
+                <th>Alk</th>
+                <th>NTU</th>
+                <th>Cl2</th>
+                <th>pH</th>
+                <th>PA</th>
+                <th>Alk</th>
+                <th>NTU</th>
+                <th>Cl2</th>
+                <th>pH</th>
+                <th>PA</th>
+                <th>Alk</th>
+                <th>NTU</th>
+                <th>Cl2</th>
+                <th>pH</th>
+                <th>PA</th>
+                <th>Alk</th>
+                <th>NTU</th>
+                <th>Cl2</th>
+                <th>Raw</th>
+                <th>Finish</th>
+                <th>Ferric</th>
+                <th>Lime</th>
+                <th>Chlorine</th>
+                <th>Ammonia</th>
+                <th>Fluoride</th>
+                <th>Poly</th>
+                <th>Carbon</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(month, index) in data">
+                <td>{{ formatDate(month._date) }}</td>
+                <td>{{ month.lake.avg }}</td>
+                <td>{{ month.raw_temp.avg }}</td>
+                <td>{{ FtoC(month.raw_temp.avg) }}</td>
+                <td>{{ month.raw_ph.avg }}</td>
+                <td>{{ month.raw_partial.avg }}</td>
+                <td>{{ month.raw_total.avg }}</td>
+                <td>{{ month.raw_turbidity.avg }}</td>
+                <td>{{ month.north_mix_cl2_total.avg }}</td>
+                <td>{{ month.nsett_ph.avg }}</td>
+                <td>{{ month.nsett_partial.avg }}</td>
+                <td>{{ month.nsett_total.avg }}</td>
+                <td>{{ month.nsett_turbidity.avg }}</td>
+                <td>{{ month.north_settled_cl2_total.avg }}</td>
+                <td>{{ month.nfilt_ph.avg }}</td>
+                <td>{{ month.nfilt_partial.avg }}</td>
+                <td>{{ month.nfilt_total.avg }}</td>
+                <td>{{ month.nfilt_turbidity.avg }}</td>
+                <td>{{ month.north_filter_cl2_total.avg }}</td>
+                <td>{{ month.finished_ph.avg }}</td>
+                <td>{{ month.finished_partial.avg }}</td>
+                <td>{{ month.finished_total.avg }}</td>
+                <td>{{ month.finished_turbidity.avg }}</td>
+                <td>{{ month.fin_cl2_total.avg }}</td>
+                <td>{{ month.raw_fluoride_plant.avg }}</td>
+                <td>{{ month.fin_fluoride_plant.avg }}</td>
+                <td>{{ month.ferric.avg }}</td>
+                <td>{{ month.lime.avg }}</td>
+                <td>{{ month.chlorine.avg }}</td>
+                <td>{{ month.ammonia.avg }}</td>
+                <td>0</td>
+                <td>{{ month.polymer.avg }}</td>
+                <td>{{ month.carbon.avg }}</td>
+              </tr>
+              <tr class="bg-warning">
+                <th>Avg</th>
+                <td>{{ avgColumn('lake', 'avg') }}</td>
+                <td>{{ avgColumn('raw_temp', 'avg') }}</td>
+                <td>{{ avgCelsius() }}</td>
+                <td>{{ avgColumn('raw_ph', 'avg') }}</td>
+                <td>{{ avgColumn('raw_partial', 'avg') }}</td>
+                <td>{{ avgColumn('raw_total', 'avg') }}</td>
+                <td>{{ avgColumn('raw_turbidity', 'avg') }}</td>
+                <td>{{ avgColumn('north_mix_cl2_total', 'avg') }}</td>
+                <td>{{ avgColumn('nsett_ph', 'avg') }}</td>
+                <td>{{ avgColumn('nsett_partial', 'avg') }}</td>
+                <td>{{ avgColumn('nsett_total', 'avg') }}</td>
+                <td>{{ avgColumn('nsett_turbidity', 'avg') }}</td>
+                <td>{{ avgColumn('north_settled_cl2_total', 'avg') }}</td>
+                <td>{{ avgColumn('nfilt_ph', 'avg') }}</td>
+                <td>{{ avgColumn('nfilt_partial', 'avg') }}</td>
+                <td>{{ avgColumn('nfilt_total', 'avg') }}</td>
+                <td>{{ avgColumn('nfilt_turbidity', 'avg') }}</td>
+                <td>{{ avgColumn('north_filter_cl2_total', 'avg') }}</td>
+                <td>{{ avgColumn('finished_ph', 'avg') }}</td>
+                <td>{{ avgColumn('finished_partial', 'avg') }}</td>
+                <td>{{ avgColumn('finished_total', 'avg') }}</td>
+                <td>{{ avgColumn('finished_turbidity', 'avg') }}</td>
+                <td>{{ avgColumn('fin_cl2_total', 'avg') }}</td>
+                <td>{{ avgColumn('raw_fluoride_plant', 'avg') }}</td>
+                <td>{{ avgColumn('fin_fluoride_plant', 'avg') }}</td>
+                <td>{{ avgColumn('ferric', 'avg') }}</td>
+                <td>{{ avgColumn('lime', 'avg') }}</td>
+                <td>{{ avgColumn('chlorine', 'avg') }}</td>
+                <td>{{ avgColumn('ammonia', 'avg') }}</td>
+                <td>0.0</td>
+                <td>{{ avgColumn('polymer', 'avg') }}</td>
+                <td>{{ avgColumn('carbon', 'avg') }}</td>
+                
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        
+      </div>
+      <br>
+      <div v-if="!loading">
+        <ul class="editBtn">
+          <li><p>If any changes have been made in any of the monthly reports, be sure to update the corresponding monthly report: <select v-on:change="setUrl" v-model="selected"><option v-for="option in options" v-bind:value="option.value">{{ option.text }}</option></select> <a class="btn btn-xs btn-info" v-if="selected !== ''" :href="url" target="_blank">{{ months[parseInt(selected) - 1] }} Monthly Report</a></p></li>
+          <li><p v-if="data.length < 12" class="redText">It appears not all monthly reports have been generated and saved. Be sure to go to any missing monthly composite report pages and click SAVE.</p></li>
+        </ul>
+      </div>
+      <button id="download-csv" v-on:click="exportTableToCSV('yearly_composite.csv')">Download Excel File</button>
+    </div>
+    <script src="./main.js?v=1.1"></script>
+  </body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Fiscal 3-Year Production Summary</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1600px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <select v-model="year" class="selectpicker">
+        <option v-for="option in options" v-bind:value="option.value">
+          {{ option.text }}
+        </option>
+      </select>
+      <h4 class="text-center">{{ reportYears[0] }} - {{ reportYears[2] }} Fiscal 3-Year Production Summary</h4>
+      
+      <ul class="nav nav-tabs">
+				<li :class="(currentTab == 'page1') ? 'active': '' "><a href="#" v-on:click="changeTab('page1')">{{ reportYears[0] }}</a></li>
+				<li :class="(currentTab == 'page2') ? 'active': '' "><a href="#" v-on:click="changeTab('page2')">{{ reportYears[1] }}</a></li>
+				<li :class="(currentTab == 'page3') ? 'active': '' "><a href="#" v-on:click="changeTab('page3')">{{ reportYears[2] }}</a></li>
+			</ul>
+      <div class="tab-content">
+				<div id="page1" class="tab-pane fade table-fixed" v-bind:class="{'active': currentTab == 'page1', 'in': currentTab == 'page1' }" v-show="currentTab == 'page1'">
+          <table class="table table-fixed table-bordered table-condensed">
+						<thead>
+							<tr>
+                <th colspan="2">Month/Year</th>
+                <th rowspan="3">Number of Customers</th>
+                <th colspan="5">Finished/Treated Water</th>
+                <th colspan="2">Lost in Treatment</th>
+                <th colspan="2">Lost in System</th>
+                <th colspan="2">Total Loss</th>
+                <th rowspan="2">City of Lewisville Usage (MG)</th>
+                <th rowspan="2">Loss Accounted for at Plant</th>
+                <th rowspan="2">% Loss Unaccounted for at Plant</th>
+                <th rowspan="2">Notes</th>
+                <th rowspan="2" class="editBtn"></th>
+              </tr>
+                
+              <tr>
+                <th>Month</th>
+                <th>Year</th>
+                <th>Raw Water</th>
+                <th>Plant</th>
+                <th>Dallas SCADA</th>
+                <th>Total</th>
+                <th>Total Sales</th>
+                <th>Gallons</th>
+                <th>%</th>
+                <th>Gallons</th>
+                <th>%</th>
+                <th>Gallons</th>
+                <th>%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="month in data[0]">
+                <td>{{ months[month.rMonth - 1] }}</td>
+                <td>{{ month.rYear }}</td>
+                <td>{{ localizeInt(month.num_cust) }}</td>
+                <td>{{ localizeInt(month.raw_vault) }}</td>
+                <td>{{ localizeInt(month.finished) }}</td>
+                <td>{{ localizeInt(month.dallas) }}</td>
+                <td>{{ localizeInt(total(month.finished, month.dallas))  }}</td>
+                <td>{{ localizeInt(month.total_sales) }}</td>
+                <td>{{ localizeInt(diff(month.raw_vault, month.finished)) }}</td>
+                <td>{{ localizeFloat((diff(month.raw_vault, month.finished, true) / parseFloat(month.raw_vault) * 100), 1)  }}</td>
+                <td>{{ localizeInt(diff(total(month.finished, month.dallas), month.total_sales)) }}</td>
+                <td>{{ localizeFloat((diff(totalFloat(month.finished, month.dallas), month.total_sales, true) / totalFloat(month.finished, month.dallas) * 100), 1)  }}</td>
+                <td>{{ localizeInt(diff(total(month.raw_vault, month.dallas), month.total_sales)) }}</td>
+                <td>{{ localizeFloat((diff(totalFloat(month.raw_vault, month.dallas), month.total_sales, true) / totalFloat(month.raw_vault, month.dallas) * 100), 1)  }}</td>
+                <td>{{ month.city_usage }}</td>
+                <td>{{ localizeFloat(month.sludge, 3) }}</td>
+                <td>{{ localizeFloat(((diff(month.raw_vault, month.finished, true) - (parseFloat(month.sludge) * 1000000)) / parseFloat(month.raw_vault)) * 100, 2 ) }}</td>
+                <td>{{ month.notes }}</td>
+                <td class="editBtn">
+                  <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=77&record=' + month.psofia_recordid + '#96'" target="_blank" v-if="month.psofia_recordid">EDIT</a>
+                  <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=77'" target="_blank" v-if="!month.psofia_recordid">NEW</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div id="page2" class="tab-pane fade table-fixed" v-bind:class="{'active': currentTab == 'page2', 'in': currentTab == 'page2' }" v-show="currentTab == 'page2'">
+          <table class="table table-fixed table-bordered table-condensed">
+            <thead>
+              <tr>
+                <th colspan="2">Month/Year</th>
+                <th rowspan="3">Number of Customers</th>
+                <th colspan="5">Finished/Treated Water</th>
+                <th colspan="2">Lost in Treatment</th>
+                <th colspan="2">Lost in System</th>
+                <th colspan="2">Total Loss</th>
+                <th rowspan="2">City of Lewisville Usage (MG)</th>
+                <th rowspan="2">Loss Accounted for at Plant</th>
+                <th rowspan="2">% Loss Unaccounted for at Plant</th>
+                <th rowspan="2">Notes</th>
+                <th rowspan="2" class="editBtn"></th>
+              </tr>
+              
+              <tr>
+                <th>Month</th>
+                <th>Year</th>
+                <th>Raw Water</th>
+                <th>Plant</th>
+                <th>Dallas SCADA</th>
+                <th>Total</th>
+                <th>Total Sales</th>
+                <th>Gallons</th>
+                <th>%</th>
+                <th>Gallons</th>
+                <th>%</th>
+                <th>Gallons</th>
+                <th>%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="month in data[1]">
+                <td>{{ months[month.rMonth - 1] }}</td>
+                <td>{{ month.rYear }}</td>
+                <td>{{ localizeInt(month.num_cust) }}</td>
+                <td>{{ localizeInt(month.raw_vault) }}</td>
+                <td>{{ localizeInt(month.finished) }}</td>
+                <td>{{ localizeInt(month.dallas) }}</td>
+                <td>{{ localizeInt(total(month.finished, month.dallas))  }}</td>
+                <td>{{ localizeInt(month.total_sales) }}</td>
+                <td>{{ localizeInt(diff(month.raw_vault, month.finished)) }}</td>
+                <td>{{ localizeFloat((diff(month.raw_vault, month.finished, true) / parseFloat(month.raw_vault) * 100), 1)  }}</td>
+                <td>{{ localizeInt(diff(total(month.finished, month.dallas), month.total_sales)) }}</td>
+                <td>{{ localizeFloat((diff(totalFloat(month.finished, month.dallas), month.total_sales, true) / totalFloat(month.finished, month.dallas) * 100), 1)  }}</td>
+                <td>{{ localizeInt(diff(total(month.raw_vault, month.dallas), month.total_sales)) }}</td>
+                <td>{{ localizeFloat((diff(totalFloat(month.raw_vault, month.dallas), month.total_sales, true) / totalFloat(month.raw_vault, month.dallas) * 100), 1)  }}</td>
+                <td>{{ month.city_usage }}</td>
+                <td>{{ localizeFloat(month.sludge, 3) }}</td>
+                <td>{{ localizeFloat(((diff(month.raw_vault, month.finished, true) - (parseFloat(month.sludge) * 1000000)) / parseFloat(month.raw_vault)) * 100, 2 ) }}</td>
+                <td>{{ month.notes }}</td>
+                <td class="editBtn">
+                  <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=77&record=' + month.psofia_recordid + '#96'" target="_blank" v-if="month.psofia_recordid">EDIT</a>
+                  <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=77'" target="_blank" v-if="!month.psofia_recordid">NEW</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div id="page3" class="tab-pane fade table-fixed" v-bind:class="{'active': currentTab == 'page3', 'in': currentTab == 'page3' }" v-show="currentTab == 'page3'">
+          <table class="table table-fixed table-bordered table-condensed">
+      			<thead>
+      				<tr>
+                <th colspan="2">Month/Year</th>
+                <th rowspan="3">Number of Customers</th>
+                <th colspan="5">Finished/Treated Water</th>
+                <th colspan="2">Lost in Treatment</th>
+                <th colspan="2">Lost in System</th>
+                <th colspan="2">Total Loss</th>
+                <th rowspan="2">City of Lewisville Usage (MG)</th>
+                <th rowspan="2">Loss Accounted for at Plant</th>
+                <th rowspan="2">% Loss Unaccounted for at Plant</th>
+                <th rowspan="2">Notes</th>
+                <th rowspan="2" class="editBtn"></th>
+              </tr>
+              
+              <tr>
+                <th>Month</th>
+                <th>Year</th>
+                <th>Raw Water</th>
+                <th>Plant</th>
+                <th>Dallas SCADA</th>
+                <th>Total</th>
+                <th>Total Sales</th>
+                <th>Gallons</th>
+                <th>%</th>
+                <th>Gallons</th>
+                <th>%</th>
+                <th>Gallons</th>
+                <th>%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="month in data[2]">
+                <td>{{ months[month.rMonth - 1] }}</td>
+                <td>{{ month.rYear }}</td>
+                <td>{{ localizeInt(month.num_cust) }}</td>
+                <td>{{ localizeInt(month.raw_vault) }}</td>
+                <td>{{ localizeInt(month.finished) }}</td>
+                <td>{{ localizeInt(month.dallas) }}</td>
+                <td>{{ localizeInt(total(month.finished, month.dallas))  }}</td>
+                <td>{{ localizeInt(month.total_sales) }}</td>
+                <td>{{ localizeInt(diff(month.raw_vault, month.finished)) }}</td>
+                <td>{{ localizeFloat((diff(month.raw_vault, month.finished, true) / parseFloat(month.raw_vault) * 100), 1)  }}</td>
+                <td>{{ localizeInt(diff(total(month.finished, month.dallas), month.total_sales)) }}</td>
+                <td>{{ localizeFloat((diff(totalFloat(month.finished, month.dallas), month.total_sales, true) / totalFloat(month.finished, month.dallas) * 100), 1)  }}</td>
+                <td>{{ localizeInt(diff(total(month.raw_vault, month.dallas), month.total_sales)) }}</td>
+                <td>{{ localizeFloat((diff(totalFloat(month.raw_vault, month.dallas), month.total_sales, true) / totalFloat(month.raw_vault, month.dallas) * 100), 1) }}</td>
+                <td>{{ month.city_usage }}</td>
+                <td>{{ localizeFloat(month.sludge, 3) }}</td>
+                <td>{{ localizeFloat(((diff(month.raw_vault, month.finished, true) - (parseFloat(month.sludge) * 1000000)) / parseFloat(month.raw_vault)) * 100, 2 ) }}</td>
+                <td>{{ month.notes }}</td>
+                <td class="editBtn">
+                  <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=77&record=' + month.psofia_recordid + '#96'" target="_blank" v-if="month.psofia_recordid">EDIT</a>
+                  <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=77'" target="_blank" v-if="!month.psofia_recordid">NEW</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <button id="download-csv" v-on:click="exportTableToCSV('three_year_fiscal_summary.csv')">Download CSV File</button>
+
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.0.2"></script>
+  </body>
+</html>

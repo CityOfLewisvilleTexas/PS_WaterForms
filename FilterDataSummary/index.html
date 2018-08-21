@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TOP-002 - Filter Data Summary</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1700px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      .highlight {
+        background-color: yellow !important;
+      }
+      
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+      
+      /* Scrollable table body */
+      .table-fixed tbody {
+          display:block;
+          height:700px;
+          overflow:auto;
+      }
+      .table-fixed thead, tbody tr {
+          display:table;
+          width:100%;
+          table-layout:fixed;
+      }
+      .table-fixed thead {
+          width: calc( 100% - 1em );
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <h4 class="text-center">TOP-002 - Filter Data Summary - {{ months[month - 1] + ', ' + year }}</h4>
+      <br>
+      
+      <ul class="nav nav-tabs">
+				<li v-bind:class="{'active': currentTab == 'page1'}"><a href="#" v-on:click="changeTab('page1')">Filters 1-4</a></li>
+				<li v-bind:class="{'active': currentTab == 'page2'}"><a href="#" v-on:click="changeTab('page2')">Filters 5-8</a></li>
+			</ul>
+			<br>
+			<div class="tab-content">
+				<div id="page1" class="tab-pane fade" v-bind:class="{'active': currentTab == 'page1', 'in': currentTab == 'page1' }" v-show="currentTab == 'page1'">
+          <table class="table table-fixed table-bordered table-condensed">
+            <thead>
+              <tr>
+                <th rowspan="2">Date</th>
+                <th colspan="6">Filter #1</th>
+                <th colspan="6">Filter #2</th>
+                <th colspan="6">Filter #3</th>
+                <th colspan="6">Filter #4</th>
+              </tr>
+              <tr>
+                <th># of Readings</th>
+                <th>Above .105</th>
+                <th>Above .15</th>
+                <th>Above .5</th>
+                <th>Max NTU</th>
+                <th>Min NTU</th>
+                <th># of Readings</th>
+                <th>Above .105</th>
+                <th>Above .15</th>
+                <th>Above .5</th>
+                <th>Max NTU</th>
+                <th>Min NTU</th>
+                <th># of Readings</th>
+                <th>Above .105</th>
+                <th>Above .15</th>
+                <th>Above .5</th>
+                <th>Max NTU</th>
+                <th>Min NTU</th>
+                <th># of Readings</th>
+                <th>Above .105</th>
+                <th>Above .15</th>
+                <th>Above .5</th>
+                <th>Max NTU</th>
+                <th>Min NTU</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="day in data">
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.day.get('month') + 1 + '/' + day.day.get('date') }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt1_num_readings }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt1_105 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt1_15 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt1_5 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt1_max }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt1_min }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt2_num_readings }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt2_105 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt2_15 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt2_5 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt2_max }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt2_min }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt3_num_readings }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt3_105 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt3_15 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt3_5 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt3_max }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt3_min }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt4_num_readings }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt4_105 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt4_15 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt4_5 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt4_max }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt4_min }}</td>
+              </tr>
+              <tr class="bg-warning">
+                <th>Totals</th>
+                <td>{{ totals.filt1_num_readings }}</td>
+                <td>{{ totals.filt1_105 }}</td>
+                <td>{{ totals.filt1_15 }}</td>
+                <td>{{ totals.filt1_5 }}</td>
+                <td>{{ totals.filt1_max }}</td>
+                <td>{{ totals.filt1_min }}</td>
+                <td>{{ totals.filt2_num_readings }}</td>
+                <td>{{ totals.filt2_105 }}</td>
+                <td>{{ totals.filt2_15 }}</td>
+                <td>{{ totals.filt2_5 }}</td>
+                <td>{{ totals.filt2_max }}</td>
+                <td>{{ totals.filt2_min }}</td>
+                <td>{{ totals.filt3_num_readings }}</td>
+                <td>{{ totals.filt3_105 }}</td>
+                <td>{{ totals.filt3_15 }}</td>
+                <td>{{ totals.filt3_5 }}</td>
+                <td>{{ totals.filt3_max }}</td>
+                <td>{{ totals.filt3_min }}</td>
+                <td>{{ totals.filt4_num_readings }}</td>
+                <td>{{ totals.filt4_105 }}</td>
+                <td>{{ totals.filt4_15 }}</td>
+                <td>{{ totals.filt4_5 }}</td>
+                <td>{{ totals.filt4_max }}</td>
+                <td>{{ totals.filt4_min }}</td>
+              </tr>
+              <tr class="bg-danger">
+                <th>Avg.</th>
+                <td>{{ avg.filt5_num_readings }}</td>
+                <td>{{ avg.filt5_105 }}</td>
+                <td>{{ avg.filt5_15 }}</td>
+                <td>{{ avg.filt5_5 }}</td>
+                <td>{{ avg.filt5_max }}</td>
+                <td>{{ avg.filt5_min }}</td>
+                <td>{{ avg.filt6_num_readings }}</td>
+                <td>{{ avg.filt6_105 }}</td>
+                <td>{{ avg.filt6_15 }}</td>
+                <td>{{ avg.filt6_5 }}</td>
+                <td>{{ avg.filt6_max }}</td>
+                <td>{{ avg.filt6_min }}</td>
+                <td>{{ avg.filt7_num_readings }}</td>
+                <td>{{ avg.filt7_105 }}</td>
+                <td>{{ avg.filt7_15 }}</td>
+                <td>{{ avg.filt7_5 }}</td>
+                <td>{{ avg.filt7_max }}</td>
+                <td>{{ avg.filt7_min }}</td>
+                <td>{{ avg.filt8_num_readings }}</td>
+                <td>{{ avg.filt8_105 }}</td>
+                <td>{{ avg.filt8_15 }}</td>
+                <td>{{ avg.filt8_5 }}</td>
+                <td>{{ avg.filt8_max }}</td>
+                <td>{{ avg.filt8_min }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="page2" class="tab-pane fade" v-bind:class="{'active': currentTab == 'page2', 'in': currentTab == 'page2' }" v-show="currentTab == 'page2'">
+          <table class="table table-fixed table-bordered table-condensed">
+            <thead>
+              <tr>
+                <th rowspan="2">Date</th>
+                <th colspan="6">Filter #5</th>
+                <th colspan="6">Filter #6</th>
+                <th colspan="6">Filter #7</th>
+                <th colspan="6">Filter #8</th>
+              </tr>
+              <tr>
+                <th># of Readings</th>
+                <th>Above .105</th>
+                <th>Above .15</th>
+                <th>Above .5</th>
+                <th>Max NTU</th>
+                <th>Min NTU</th>
+                <th># of Readings</th>
+                <th>Above .105</th>
+                <th>Above .15</th>
+                <th>Above .5</th>
+                <th>Max NTU</th>
+                <th>Min NTU</th>
+                <th># of Readings</th>
+                <th>Above .105</th>
+                <th>Above .15</th>
+                <th>Above .5</th>
+                <th>Max NTU</th>
+                <th>Min NTU</th>
+                <th># of Readings</th>
+                <th>Above .105</th>
+                <th>Above .15</th>
+                <th>Above .5</th>
+                <th>Max NTU</th>
+                <th>Min NTU</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="day in data">
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.day.get('month') + 1 + '/' + day.day.get('date') }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt5_num_readings }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt5_105 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt5_15 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt5_5 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt5_max }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt5_min }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt6_num_readings }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt6_105 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt6_15 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt6_5 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt6_max }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt6_min }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt7_num_readings }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt7_105 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt7_15 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt7_5 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt7_max }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt7_min }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt8_num_readings }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt8_105 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt8_15 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt8_5 }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt8_max }}</td>
+                <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.filt8_min }}</td>
+              </tr>
+              <tr class="bg-warning">
+                <th>Totals</th>
+                <td>{{ totals.filt5_num_readings }}</td>
+                <td>{{ totals.filt5_105 }}</td>
+                <td>{{ totals.filt5_15 }}</td>
+                <td>{{ totals.filt5_5 }}</td>
+                <td>{{ totals.filt5_max }}</td>
+                <td>{{ totals.filt5_min }}</td>
+                <td>{{ totals.filt6_num_readings }}</td>
+                <td>{{ totals.filt6_105 }}</td>
+                <td>{{ totals.filt6_15 }}</td>
+                <td>{{ totals.filt6_5 }}</td>
+                <td>{{ totals.filt6_max }}</td>
+                <td>{{ totals.filt6_min }}</td>
+                <td>{{ totals.filt7_num_readings }}</td>
+                <td>{{ totals.filt7_105 }}</td>
+                <td>{{ totals.filt7_15 }}</td>
+                <td>{{ totals.filt7_5 }}</td>
+                <td>{{ totals.filt7_max }}</td>
+                <td>{{ totals.filt7_min }}</td>
+                <td>{{ totals.filt8_num_readings }}</td>
+                <td>{{ totals.filt8_105 }}</td>
+                <td>{{ totals.filt8_15 }}</td>
+                <td>{{ totals.filt8_5 }}</td>
+                <td>{{ totals.filt8_max }}</td>
+                <td>{{ totals.filt8_min }}</td>
+              </tr>
+              <tr class="bg-danger">
+                <th>Avg.</th>
+                <td>{{ avg.filt5_num_readings }}</td>
+                <td>{{ avg.filt5_105 }}</td>
+                <td>{{ avg.filt5_15 }}</td>
+                <td>{{ avg.filt5_5 }}</td>
+                <td>{{ avg.filt5_max }}</td>
+                <td>{{ avg.filt5_min }}</td>
+                <td>{{ avg.filt6_num_readings }}</td>
+                <td>{{ avg.filt6_105 }}</td>
+                <td>{{ avg.filt6_15 }}</td>
+                <td>{{ avg.filt6_5 }}</td>
+                <td>{{ avg.filt6_max }}</td>
+                <td>{{ avg.filt6_min }}</td>
+                <td>{{ avg.filt7_num_readings }}</td>
+                <td>{{ avg.filt7_105 }}</td>
+                <td>{{ avg.filt7_15 }}</td>
+                <td>{{ avg.filt7_5 }}</td>
+                <td>{{ avg.filt7_max }}</td>
+                <td>{{ avg.filt7_min }}</td>
+                <td>{{ avg.filt8_num_readings }}</td>
+                <td>{{ avg.filt8_105 }}</td>
+                <td>{{ avg.filt8_15 }}</td>
+                <td>{{ avg.filt8_5 }}</td>
+                <td>{{ avg.filt8_max }}</td>
+                <td>{{ avg.filt8_min }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button id="download-csv" v-on:click="exportTableToCSV('filter_data_summary.csv')">Download Excel File</button>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.2"></script>
+  </body>
+</html>

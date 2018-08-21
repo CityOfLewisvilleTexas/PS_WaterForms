@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TOP-001 - Sedimentation Basins / Clarifiers</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1375px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      .highlight {
+        background-color: yellow !important;
+      }
+      
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+      
+      /* Scrollable table body */
+      .table-fixed tbody {
+          display:block;
+          height:700px;
+          overflow:auto;
+      }
+      .table-fixed thead, tbody tr {
+          display:table;
+          width:100%;
+          table-layout:fixed;
+      }
+      .table-fixed thead {
+          width: calc( 100% - 1em );
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <h4 class="text-center">TOP-001 - Sedimentation Basins / Clarifiers TOP Program - {{ months[month - 1] + ', ' + year }}</h4>
+      <br>
+      <p class="text-center">Turbidity Sample to be Taken From Each Clarifier-in-Operation at 1300 Hours Each Day.</p>
+      <br>
+      <table class="table table-fixed table-bordered table-condensed">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>#1 Clarifier NTU</th>
+            <th>#2 Clarifier NTU</th>
+            <th>#3 Clarifier NTU</th>
+            <th>#4 Clarifier NTU</th>
+            <th>Operator Initials</th>
+            <th class="editBtn"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="day in data">
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.day.get('month') + 1 + '/' + day.day.get('date') }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day._Time }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.clar1_ntu }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.clar2_ntu }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.clar3_ntu }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.clar4_ntu }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.operator }}</td>
+            <td class="editBtn" :class="{ highlight: (day.day.get('date') === today.get('date')) }">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=70&record=' + day.PSOFIA_RecordNumber + '#96'" target="_blank" v-if="day.PSOFIA_RecordNumber">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=70'" target="_blank" v-if="!day.PSOFIA_RecordNumber">NEW</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <button id="download-csv" v-on:click="exportTableToCSV('top_001_sedimentation_basins_clarifiers.csv')">Download Excel File</button>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.0"></script>
+  </body>
+</html>

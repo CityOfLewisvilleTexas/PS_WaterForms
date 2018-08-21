@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!--================================================================================
+	Item Name: Water Plant Admin Dashboard - For Karen
+	Version: 1.0
+	Author: Caleb Faught
+  ================================================================================ -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <title>Water Plant Admin Dashboard</title>
+    <meta name="msapplication-TileColor" content="#00bcd4">
+    <!-- jQuery Library -->
+    <script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+    
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+
+    <!-- Chart.js/Vue-Chart libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+    <script src="https://unpkg.com/vue-chartjs/dist/vue-chartjs.min.js"></script>
+
+    <!-- Moment.js for better time parsing -->
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- CORE CSS-->
+    <!-- <link href="./css/materialize.css" type="text/css" rel="stylesheet"> -->
+    <link href="./css/style.css" type="text/css" rel="stylesheet">
+    <link href="./css/perfect-scrollbar.css" type="text/css" rel="stylesheet">
+
+    <style type="text/css">
+      .ps-scrollbar-x-rail {
+        z-index: 9999;
+      }
+
+      .ps-scrollbar-y-rail {
+        z-index: 9999;
+      }
+
+      .side-nav.native-scroll {
+        overflow-y: scroll !important;
+      }
+      /*.chart-container {
+        height: calc(285px - 2.85rem - 5px);
+      }*/
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Start Page Loading -->
+      <div id="loader-wrapper" :class="{ loaded: !loading }">
+        <div id="loader"></div>
+        <div class="loader-section section-left"></div>
+        <div class="loader-section section-right"></div>
+      </div>
+      <!-- End Page Loading -->
+      <!-- //////////////////////////////////////////////////////////////////////////// -->
+      <!-- START HEADER -->
+      <header id="header" class="page-topbar">
+        <div class="navbar-fixed">
+          <nav class="navbar-color gradient-45deg-light-blue-cyan">
+            <div class="nav-wrapper">
+              <ul class="left">
+                <li>
+                  <h1 class="logo-wrapper">
+                    <a href="index.html" class="brand-logo darken-1">
+                      <img src="../CityLogos/pmartin.svg" alt="City of Lewisville logo">
+                      <span class="logo-text hide-on-med-and-down">W/WWTP</span>
+                    </a>
+                  </h1>
+                </li>
+                
+              </ul>
+              
+              <div class="header-search-wrapper hide-on-med-and-down">
+                <!-- <i class="material-icons">search</i> -->
+                <input id="start_date" name="start_date" class="datepicker" :model="testDate" :data-value="start_date" required>
+              </div>
+              <ul class="right hide-on-med-and-down">
+                <li>
+                  <a href="javascript:void(0);" class="waves-effect waves-block waves-light notification-button" style="color: white;">
+                    <!-- <i class="material-icons">line_weight</i> -->
+                    <!-- Lake Level: {{ lakelevel }} -->
+                  </a>
+                  
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+      </header>
+      <!-- END HEADER -->
+      <!-- //////////////////////////////////////////////////////////////////////////// -->
+      <!-- START MAIN -->
+      <div id="main">
+        <!-- START WRAPPER -->
+        <div class="wrapper">
+          <!-- START LEFT SIDEBAR NAV-->
+          <aside>
+            <ul id="slide-out" class="side-nav fixed leftside-navigation">
+              <li>
+                <ul class="collapsible" data-collapsible="accordion">
+                  <li class="bold">
+                    <a class="collapsible-header waves-effect waves-cyan active"><i class="material-icons">assessment</i><span class="nav-text">{{ months[parseInt(month) - 1] }} Reports</span></a>
+                    <div class="collapsible-body">
+                      <ul>
+                        <li>
+                          <a class="waves-effect waves-cyan active" :href="monCompUrl" target="_blank">Monthly Composite</a>
+                        </li>
+                        <li>
+                          <a class="waves-effect waves-cyan active" :href="wtp008Url" target="_blank">WTP-008</a>
+                        </li>
+                        <li>
+                          <a class="waves-effect waves-cyan active" :href="wtp014Url" target="_blank">WTP-014</a>
+                        </li>
+                        <li>
+                          <a class="waves-effect waves-cyan active" :href="waterUsageUrl" target="_blank">Water Usage</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </li>
+              </li>
+              <li>
+                <ul class="collapsible" data-collapsible="accordion">
+                  <li class="bold">
+                    <a class="collapsible-header waves-effect waves-cyan active"><i class="material-icons">assessment</i><span class="nav-text">Yearly Reports</span></a>
+                    <div class="collapsible-body">
+                      <ul>
+                        <li>
+                          <a class="waves-effect waves-cyan active" :href="threeYearProductionSummary_CalendarURL" target="_blank">Cal. 3-Year Summary</a>
+                        </li>
+                        <li>
+                          <a class="waves-effect waves-cyan active" :href="threeYearProductionSummaryURL" target="_blank">Fiscal 3-Year Summary</a>
+                        </li>
+                        <li>
+                          <a class="waves-effect waves-cyan active" :href="waterCalcURL" target="_blank">Water Monthly Calculations</a>
+                        </li>
+                        
+                      </ul>
+                    </div>
+                  </li>
+              </li>
+
+              <!-- <li><a class="waves-effect" href="#!">Cal. 3-Year Summary</a></li>
+              <li><a class="waves-effect" href="#!">Fiscal 3-Year Summary</a></li>
+              <li><a class="waves-effect" href="#!">Water Monthly Calculations</a></li>
+              <li><a class="waves-effect" href="#!">Water Usage</a></li> -->
+            </ul>
+
+            <a href="#" data-activates="slide-out" class="sidebar-collapse btn-floating btn-medium waves-effect waves-light hide-on-large-only">
+              <i class="material-icons">menu</i>
+            </a>
+            <!-- <a href="#" data-activates="slide-out" class="button-collapse"><i class="material-icons">menu</i></a> -->
+          </aside>
+          
+          <!-- END LEFT SIDEBAR NAV-->
+          <!-- //////////////////////////////////////////////////////////////////////////// -->
+          <!-- START CONTENT -->
+          <section id="content">
+            <!--start container-->
+            <div class="container">
+
+              <div id="chart-dashboard">
+              <div class="row">
+                <div class="col s12 m8 l8">
+                  <div class="card">
+                    <div class="card-move-up waves-effect waves-block waves-light">
+                      <div class="move-up cyan darken-1">
+                        <div>
+                          <span class="chart-title white-text">Flows</span>
+                          <!-- <div class="chart-revenue cyan darken-2 white-text">
+                            <p class="chart-revenue-total">todays value</p>
+                            <p class="chart-revenue-per">
+                              <i class="material-icons">arrow_drop_up</i> gal.</p>
+                          </div> -->
+                          <div class="switch chart-revenue-switch right">
+                            <label class="cyan-text text-lighten-5">
+                              Influent
+                              <input type="checkbox" id="switch" v-on:click="switchInfEff">
+                              <span class="lever"></span> Effluent
+                            </label>
+                          </div>
+                        </div>
+                        <div class="trending-line-chart-wrapper">
+                          <!-- <canvas id="trending-line-chart" height="165" width="711" style="width: 711px; height: 165px;"></canvas> -->
+                          <line-chart v-if="!loading" :data="chartData" style="height: 285px; margin-bottom: 10px;"></line-chart>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-content">
+                      <a class="btn-floating btn-move-up waves-effect waves-light red accent-2 z-depth-4 right">
+                        <i class="material-icons activator">filter_list</i>
+                      </a>
+                      <div class="col s12 m3 l3">
+                        <div id="doughnut-chart-wrapper">
+                          Lake Level (ft.) <h4>{{ lakelevel }}</h4>
+                        </div>
+                      </div>
+                      
+                      <div class="col s12 m5 l6">
+                        <div class="trending-bar-chart-wrapper">
+                          
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-reveal">
+                      <span class="card-title grey-text text-darken-4">Flows(MGD)
+                        <i class="material-icons right">close</i>
+                      </span>
+                      <table class="responsive-table">
+                        <thead>
+                          <tr>
+                            <th data-field="id">Date</th>
+                            <th data-field="month">W Influent</th>
+                            <th data-field="item-sold">W Effluent</th>
+                            <th data-field="item-price">WW Influent</th>
+                            <th data-field="total-profit">WW Effluent</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="day in data">
+                            <td>{{ day.reportdate }}</td>
+                            <td>{{ day.w_influent }}</td>
+                            <td>{{ day.w_effluent }}</td>
+                            <td>{{ day.ww_influent }}</td>
+                            <td>{{ day.ww_effluent }}</td>
+                          </tr>
+                          
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+            </div>
+            <!--end container-->
+          </section>
+        </div>
+        <!-- END WRAPPER -->
+      </div>
+      <!-- END MAIN -->
+      <!-- //////////////////////////////////////////////////////////////////////////// -->
+      <!-- START FOOTER -->
+      <!-- <footer class="page-footer">
+        <div class="container">
+          <div class="row section">
+            
+          </div>
+        </div>
+        <footer class="page-footer">
+          <div class="footer-copyright">
+            <div class="container">
+              <span>Copyright ©
+                <script type="text/javascript">
+                  document.write(new Date().getFullYear());
+                </script> <a class="grey-text text-lighten-4" href="http://themeforest.net/user/pixinvent/portfolio?ref=pixinvent" target="_blank">PIXINVENT</a> All rights reserved.</span>
+              <span class="right hide-on-small-only"> Design and Developed by <a class="grey-text text-lighten-4" href="https://pixinvent.com/">PIXINVENT</a></span>
+            </div>
+          </div>
+        </footer>
+      </footer> -->
+      <!-- END FOOTER -->
+    </div>
+    
+    <!-- ================================================
+    Scripts
+    ================================================ -->
+    <!--materialize js-->
+    <!-- <script type="text/javascript" src="./js/materialize.min.js"></script> -->
+    <!--scrollbar-->
+    <script type="text/javascript" src="./js/perfect-scrollbar.min.js"></script>
+    <!-- chartjs -->
+    <script type="text/javascript" src="./js/chart.min.js"></script>
+    <!-- sparkline -->
+    <!-- <script type="text/javascript" src="./js/jquery.sparkline.min.js"></script> -->
+    <script type="text/javascript" src="./js/custom.js?v=1.0.1"></script>
+  </body>
+</html>

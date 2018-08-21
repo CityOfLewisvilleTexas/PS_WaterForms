@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Water Rounds Sheet View</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+		<!-- Reference Vue -->
+		<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+		<!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="./initializers.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    
+    <!-- Socket ? -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+
+    <!-- LiveData -->
+    <script src="http://eservices.cityoflewisville.com/livedata/live-data.js"></script>
+    
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+
+		<style type="text/css">
+      html, body {
+        height: 100%;
+        width: 100%;
+        background-color: lightgray;
+      }
+      th, td {
+        text-align: center;
+      }
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+      .clearBckgrnd {
+        background-color: white;
+      }
+      .blue {
+        background-color: #00bfff;
+      }
+      .greyOut {
+        background-color: lightgray;
+      }
+      thead th {
+        font-size: 1em;
+      }
+      table input{
+        border: none;
+        width: 100%;
+        /*display:inline-block;
+        position:relative;*/
+      }
+      table {
+        font-size: 1.3em;
+        font-weight: 600;
+        border-color: darkgray!important;
+      }
+      td {
+        background-color: lightgray;
+        border-color: darkgray!important;
+      }
+      th {
+        border-color: darkgray!important;
+      }
+      li {
+        font-size: 1.3em;
+      }
+      input:disabled{
+        background-color:lightgray;
+      }
+      input:disabled:parent {
+        background-color: lightgray;
+      }
+      .highlight {
+        background-color: lightgoldenrodyellow;
+      }
+      td.highlight input {
+        background-color: lightgoldenrodyellow;
+      }
+      th.highlight input {
+        background-color: lightgoldenrodyellow;
+      }
+      .bordered {
+        border: 1px solid gray;
+      }
+      .text-left {
+        padding-left: 0.6em !important;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      li.active a {
+        background-color: darkgray !important;
+        color: white !important;
+        border-color: darkgray !important;
+      }
+      .nav-tabs {
+        border-color: darkgray !important;
+      }
+      input[type=checkbox]
+      {
+        /* Double-sized Checkboxes */
+        -ms-transform: scale(1.5); /* IE */
+        -moz-transform: scale(1.5); /* FF */
+        -webkit-transform: scale(1.5); /* Safari and Chrome */
+        -o-transform: scale(1.5); /* Opera */
+        padding: 10px;
+      }
+
+      .alert {
+        color: red !important;
+      }
+
+      .border-right {
+        border-right: 1px solid black !important;
+      }
+
+      .border-left {
+        border-left: 1px solid black !important;
+      }
+      
+      .statusBox {
+        position: relative;
+        height: 30px;
+        width: 100px;
+        left: 0;
+        top: 0;
+        padding-left: 10px;
+        padding-right: 10px;
+        font-weight: 700;
+      }
+      
+      .connected {
+        color: green;
+      }
+      
+      .disconnected {
+        color: red;
+      }
+
+      .gv td {
+        border: solid #3c6f91 1px;
+        white-space: nowrap;
+        width: 1px;
+      }
+
+      input[type=number].input-field::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+      }
+
+      @media print {
+        table {
+          page-break-inside;
+        }
+        table th.editBtn, table td.editBtn {
+          display: none;
+        }
+        td {
+          font-size: 1.3em !important;
+        }
+      }
+		</style>
+	</head>
+	<body>
+		<div id="app" class="container-fluid">
+      <!-- <div class="statusBox" v-bind:class="{'connected': connectStatus, 'disconnected': !connectStatus}">{{ connected() }}</div> -->
+			<h3 class="text-center">{{ roundsDate }} ROUNDS</h3>
+			<ul class="nav nav-tabs">
+				<li v-bind:class="{'active': currentTab == 'chlorine'}"><a href="#" v-on:click="changeTab('chlorine')">Chlorine</a></li>
+				<li v-bind:class="{'active': currentTab == 'ferric'}"><a href="#" v-on:click="changeTab('ferric')">Ferric</a></li>
+				<li v-bind:class="{'active': currentTab == 'lime'}"><a href="#" v-on:click="changeTab('lime')">Lime</a></li>
+<!--				<li v-bind:class="{'active': currentTab == 'flouride'}"><a href="#" v-on:click="changeTab('flouride')">Flouride</a></li>-->
+				<li v-bind:class="{'active': currentTab == 'poly'}"><a href="#" v-on:click="changeTab('poly')">Poly</a></li>
+				<li v-bind:class="{'active': currentTab == 'ammonia-a'}"><a href="#" v-on:click="changeTab('ammonia-a')">Ammonia-A</a></li>
+				<li v-bind:class="{'active': currentTab == 'ammonia-b'}"><a href="#" v-on:click="changeTab('ammonia-b')">Ammonia-B</a></li>
+				<li v-bind:class="{'active': currentTab == 'hsp'}"><a href="#" v-on:click="changeTab('hsp')">HSP</a></li>
+				<li v-bind:class="{'active': currentTab == 'nsps'}"><a href="#" v-on:click="changeTab('nsps')">NSPS</a></li>
+				<li v-bind:class="{'active': currentTab == 'rawflow'}"><a href="#" v-on:click="changeTab('rawflow')">Raw Flow</a></li>
+        <li v-bind:class="{'active': currentTab == 'apa'}"><a href="#" v-on:click="changeTab('apa')">APA</a></li>
+				<li v-bind:class="{'active': currentTab == 'carbon'}"><a href="#" v-on:click="changeTab('carbon')">Carbon</a></li>
+				<li v-bind:class="{'active': currentTab == 'flowCalc'}"><a href="#" v-on:click="changeTab('flowCalc')">Flow Calculator</a></li>
+        <li v-bind:class="{'active': currentTab == 'lastFlow'}"><a href="#" v-on:click="changeTab('lastFlow')">Last Flow</a></li>
+			</ul>
+			<br>
+			<div class="tab-content">
+				<div id="chlorine" class="tab-pane fade" v-bind:class="{'active': currentTab == 'chlorine', 'in': currentTab == 'chlorine' }" v-show="currentTab == 'chlorine'">
+					<table class="table table-bordered table-condensed gv" cellspacing="0" cellpadding="0" rules="all" border="1" id="cph_cphPCR_gv" style="border-collapse:collapse;">
+						<thead>
+							<tr>
+								<th rowspan="2">Time</th>
+								<th colspan="6">Container/Weight</th>
+								<th colspan="2">Chlor #1</th>
+								<th colspan="2">Chlor #2</th>
+								<th colspan="2">Chlor #3</th>
+								<th rowspan="2" class="editBtn"></th>
+							</tr>
+							<tr class="headerRow3">
+								<th>1</th>
+								<th>2</th>
+								<th>3</th>
+								<th>4</th>
+								<th>5</th>
+								<th>6</th>
+								<th>VAC</th>
+								<th>FEED</th>
+								<th>VAC</th>
+								<th>FEED</th>
+								<th>VAC</th>
+								<th>FEED</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+								<td>{{ round.rTime }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(2000, 0, round.ContainerWeight1) }"><input type="number" class="input-field" v-model="round.ContainerWeight1" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(2000, 0, round.ContainerWeight2) }"><input type="number" class="input-field" v-model="round.ContainerWeight2" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(2000, 0, round.ContainerWeight3) }"><input type="number" class="input-field" v-model="round.ContainerWeight3" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(2000, 0, round.ContainerWeight4) }"><input type="number" class="input-field" v-model="round.ContainerWeight4" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(2000, 0, round.ContainerWeight5) }"><input type="number" class="input-field" v-model="round.ContainerWeight5" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(2000, 0, round.ContainerWeight6) }"><input type="number" class="input-field" v-model="round.ContainerWeight6" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(50, 0, round.Chlor1_Vac) }"><input type="number" class="input-field" v-model="round.Chlor1_Vac" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(2000, 0, round.Chlor1_Lbs) }"><input type="number" class="input-field" v-model="round.Chlor1_Lbs" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(50, 0, round.Chlor2_Vac) }"><input type="number" class="input-field" v-model="round.Chlor2_Vac" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(2000, 0, round.Chlor2_Lbs) }"><input type="number" class="input-field" v-model="round.Chlor2_Lbs" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(50, 0, round.Chlor3_Vac) }"><input type="number" class="input-field" v-model="round.Chlor3_Vac" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(2000, 0, round.Chlor3_Lbs) }"><input type="number" class="input-field" v-model="round.Chlor3_Lbs" :disabled="editable(index)" v-on:change="update()"></td>
+								<td><a class="btn btn-sm btn-primary" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=53" v-if="index === 0">Bleach/LAS</a></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="ferric" class="tab-pane fade" v-bind:class="{'active': currentTab == 'ferric', 'in': currentTab == 'ferric' }" v-show="currentTab == 'ferric'">
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th rowspan="2">Time</th>
+								<th colspan="3">#1 FEED RATE</th>
+								<th colspan="3">#2 FEED RATE</th>
+								<th colspan="3">#3 FEED RATE</th>
+							</tr>
+							<tr class="headerRow3">
+								<th>ML/MIN</th>
+								<th>SET PT.</th>
+								<th>%/lbs DAY</th>
+								<th>ML/MIN</th>
+								<th>SET PT.</th>
+								<th>%/lbs DAY</th>
+								<th>ML/MIN</th>
+								<th>SET PT.</th>
+								<th>%/lbs DAY</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+                <td>{{ round.rTime }}</td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(1000, 0, round.Ferr_Pump1_ml) }"><input type="number" class="input-field" v-model="round.Ferr_Pump1_ml" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(100, 0, round.Ferr_Pump1_Set) }"><input type="number" class="input-field" v-model="round.Ferr_Pump1_Set" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ alert: !validateFerric(index) }" class="greyOut">{{ round.Ferr_Pump1_ml * 120 }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(1000, 0, round.Ferr_Pump2_ml) }"><input type="number" class="input-field" v-model="round.Ferr_Pump2_ml" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(100, 0, round.Ferr_Pump2_Set) }"><input type="number" class="input-field" v-model="round.Ferr_Pump2_Set" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ alert: !validateFerric(index) }" class="greyOut">{{ round.Ferr_Pump2_ml * 120 }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(1000, 0, round.Ferr_Pump3_ml) }"><input type="number" class="input-field" v-model="round.Ferr_Pump3_ml" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(100, 0, round.Ferr_Pump3_Set) }"><input type="number" class="input-field" v-model="round.Ferr_Pump3_Set" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ alert: !validateFerric(index) }" class="greyOut">{{ round.Ferr_Pump3_ml * 120 }}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="lime" class="tab-pane fade" v-bind:class="{'active': currentTab == 'lime', 'in': currentTab == 'lime' }" v-show="currentTab == 'lime'">
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th rowspan="2">Time</th>
+								<th colspan="2">#1 NORTH</th>
+								<th colspan="2">#2 SOUTH</th>
+							</tr>
+							<tr class="headerRow3">
+								<th>% Feed</th>
+								<th>lbs/2hrs</th>
+								<th>% Feed</th>
+								<th>lbs/2hrs</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+                <td>{{ round.rTime }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(200, 0, round.Lime_1N_Set) }"><input type="number" class="input-field" v-model="round.Lime_1N_Set" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(parseFloat(calculatedData.Lime_north_total) * 1.1, parseFloat(calculatedData.Lime_north_total) * 0.9, round.Lime_1N_Lbs) }"><input type="number" class="input-field" v-model="round.Lime_1N_Lbs" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(200, 0, round.Lime_2S_Set) }"><input type="number" class="input-field" v-model="round.Lime_2S_Set" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(parseFloat(calculatedData.Lime_south_total) * 1.1, parseFloat(calculatedData.Lime_south_total) * 0.9, round.Lime_2S_Lbs) }"><input type="number" class="input-field" v-model="round.Lime_2S_Lbs" :disabled="editable(index)" v-on:change="update()"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="poly" class="tab-pane fade" v-bind:class="{'active': currentTab == 'poly', 'in': currentTab == 'poly' }" v-show="currentTab == 'poly'">
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th rowspan="2">Time</th>
+								<th rowspan="2">#1 St-Pt</th>
+								<th rowspan="2">St/Min</th>
+								<th rowspan="2">#2 St-Pt</th>
+								<th rowspan="2">St/Min</th>
+								<th>Drum Weight</th>
+								<th rowspan="2">Time</th>
+								<th>lbs/2hr</th>
+								<th colspan="3">New Barrel</th>
+							</tr>
+							<tr>
+								<th>Enter Last Reading: <input type="number" class="input-field bordered highlight" v-model="previousPoly"></th>
+								<th v-if="flowCalc" v-on:click="updateFlowCalcValues"><span style="color: red; font-size: 1.3em;"> {{ calculatedData.Poly_total_lbs_2hr }}</span></th>
+								<th>Empty Weight</th>
+								<th>New Weight</th>
+								<th>Time Changed</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+                <td>{{ round.rTime }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Poly_Pump1_Set" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Poly_Pump1_Stk" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Poly_Pump2_Set" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Poly_Pump2_Stk" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(600, 0, round.Poly_DrumWeight) }"><input type="number" class="input-field" v-model="round.Poly_DrumWeight" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="time" style="max-width: 9em; font-size: 0.7em;" class="input-field" @dblclick="setTime($event, index, 'Poly_Time')" v-model="round.Poly_Time" :disabled="editable(index)" v-on:change="update()"></td>
+								<td class="greyOut" :class="{alert: !validate((parseFloat(calculatedData.Poly_total_lbs_2hr) * 1.10), (parseFloat(calculatedData.Poly_total_lbs_2hr) * 0.9), calcPoly(index, round))}">{{ calcPoly(index, round) }}</td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.poly_weight_empty" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.poly_weight_new" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="time" style="max-width: 9em; font-size: 0.7em;" class="input-field" @dblclick="setTime($event)" v-model="round.new_poly_time" :disabled="editable(index)" v-on:change="update()"></td>
+							</tr>
+						</tbody>
+					</table>
+			<br>
+				</div>
+				<div id="ammonia-a" class="tab-pane fade" v-bind:class="{'active': currentTab == 'ammonia-a', 'in': currentTab == 'ammonia-a' }" v-show="currentTab == 'ammonia-a'">
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th rowspan="2">Time</th>
+								<th colspan="2">#1 Ammonia</th>
+								<th colspan="2">#2 Ammonia</th>
+								<th colspan="2">#3 Ammonia</th>
+								<th>NH3</th>
+							</tr>
+							<tr>
+								<th>PSI</th>
+								<th>FEED</th>
+								<th>PSI</th>
+								<th>FEED</th>
+								<th>PSI</th>
+								<th>FEED</th>
+								<th>MG/L</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+                <td>{{ round.rTime }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm1_PSI" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm1_Lbs" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm2_PSI" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm2_Lbs" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm3_PSI" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm3_Lbs" :disabled="editable(index)" v-on:change="update()"></td>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="ammonia-b" class="tab-pane fade" v-bind:class="{'active': currentTab == 'ammonia-b', 'in': currentTab == 'ammonia-b' }" v-show="currentTab == 'ammonia-b'">
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th rowspan="2">Time</th>
+								<th colspan="3">#1 Vessel</th>
+								<th colspan="3">#2 Vessel</th>
+							</tr>
+							<tr>
+								<th>Tank PSI</th>
+								<th>Reg. PSI</th>
+								<th>% Level</th>
+								<th>Tank PSI</th>
+								<th>Reg. PSI</th>
+								<th>% Level</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+                <td>{{ round.rTime }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm_Tank1_TPSI" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm_Tank1_RPSI" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm_Tank1_Level" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm_Tank2_TPSI" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm_Tank2_RPSI" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.Amm_Tank2_Level" :disabled="editable(index)" v-on:change="update()"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="hsp" class="tab-pane fade" v-bind:class="{'active': currentTab == 'hsp', 'in': currentTab == 'hsp' }" v-show="currentTab == 'hsp'">
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th rowspan="2">Time</th>
+								<th rowspan="2">Temp</th>
+								<th rowspan="2">Volts</th>
+								<th rowspan="2">Amps</th>
+								<th colspan="4" v-if="HSP_Pumps_1">Pump 1</th>
+								<th colspan="1" v-if="!HSP_Pumps_1">Pump 1</th>
+								<th colspan="4" v-if="HSP_Pumps_2">Pump 2</th>
+								<th colspan="1" v-if="!HSP_Pumps_2">Pump 2</th>
+								<th colspan="4" v-if="HSP_Pumps_3">Pump 3</th>
+								<th colspan="1" v-if="!HSP_Pumps_3">Pump 3</th>
+								<th colspan="4" v-if="HSP_Pumps_4">Pump 4</th>
+								<th colspan="1" v-if="!HSP_Pumps_4">Pump 4</th>
+								<th colspan="4" v-if="HSP_Pumps_5">Pump 5</th>
+								<th colspan="1" v-if="!HSP_Pumps_5">Pump 5</th>
+							</tr>
+							<tr>
+								<th><span class="glyphicon glyphicon-ok"></span></th>
+								<th v-if="HSP_Pumps_1">Phase 1</th>
+								<th v-if="HSP_Pumps_1">Phase 2</th>
+								<th v-if="HSP_Pumps_1">Phase 3</th>
+								<th><span class="glyphicon glyphicon-ok"></span></th>
+								<th v-if="HSP_Pumps_2">Phase 1</th>
+								<th v-if="HSP_Pumps_2">Phase 2</th>
+								<th v-if="HSP_Pumps_2">Phase 3</th>
+								<th><span class="glyphicon glyphicon-ok"></span></th>
+								<th v-if="HSP_Pumps_3">Phase 1</th>
+								<th v-if="HSP_Pumps_3">Phase 2</th>
+								<th v-if="HSP_Pumps_3">Phase 3</th>
+								<th><span class="glyphicon glyphicon-ok"></span></th>
+								<th v-if="HSP_Pumps_4">Phase 1</th>
+								<th v-if="HSP_Pumps_4">Phase 2</th>
+								<th v-if="HSP_Pumps_4">Phase 3</th>
+								<th><span class="glyphicon glyphicon-ok"></span></th>
+								<th v-if="HSP_Pumps_5">Phase 1</th>
+								<th v-if="HSP_Pumps_5">Phase 2</th>
+								<th v-if="HSP_Pumps_5">Phase 3</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+                <td>{{ round.rTime }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.HSP_Temp" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.HSP_Volts" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.HSP_Amps" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="checkbox" v-model="round.HSP_Pumps_1" :true-value="1" :false-value="0" :disabled="editable(index)" v-on:change="update()"></input></td>
+                <td v-if="HSP_Pumps_1" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_1_Phase1" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="HSP_Pumps_1" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_1_Phase2" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="HSP_Pumps_1" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_1_Phase3" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="checkbox" v-model="round.HSP_Pumps_2" :true-value="1" :false-value="0" :disabled="editable(index)" v-on:change="update()"></input></td>
+                <td v-if="HSP_Pumps_2" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_2_Phase1" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="HSP_Pumps_2" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_2_Phase2" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="HSP_Pumps_2" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_2_Phase3" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="checkbox" v-model="round.HSP_Pumps_3" :true-value="1" :false-value="0" :disabled="editable(index)" v-on:change="update()"></input></td>
+                <td v-if="HSP_Pumps_3" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_3_Phase1" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="HSP_Pumps_3" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_3_Phase2" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="HSP_Pumps_3" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_3_Phase3" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="checkbox" v-model="round.HSP_Pumps_4" :true-value="1" :false-value="0" :disabled="editable(index)" v-on:change="update()"></input></td>
+                <td v-if="HSP_Pumps_4" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_4_Phase1" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="HSP_Pumps_4" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_4_Phase2" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="HSP_Pumps_4" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_4_Phase3" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="checkbox" v-model="round.HSP_Pumps_5" :true-value="1" :false-value="0" :disabled="editable(index)" v-on:change="update()"></input></td>
+                <td v-if="HSP_Pumps_5" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_5_Phase1" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="HSP_Pumps_5" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_5_Phase2" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="HSP_Pumps_5" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.HSP_5_Phase3" :disabled="editable(index)" v-on:change="update()"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="nsps" class="tab-pane fade" v-bind:class="{'active': currentTab == 'nsps', 'in': currentTab == 'nsps' }" v-show="currentTab == 'nsps'">
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th rowspan="2">Time</th>
+								<th rowspan="2">Volts</th>
+								<th rowspan="2">Amps</th>
+								<th rowspan="2">Flow (MGD)</th>
+								<th rowspan="2">PSI</th>
+								<th rowspan="2">NTU</th>
+								<th rowspan="2">CL2</th>
+								<th colspan="1" v-if="!NSPS_Pumps_6">Pump 6</th>
+								<th colspan="4" v-if="NSPS_Pumps_6">Pump 6</th>
+								<th colspan="2" v-if="!NSPS_Pumps_7">Pump 7</th>
+								<th colspan="5" v-if="NSPS_Pumps_7">Pump 7</th>
+								<th colspan="1" v-if="!NSPS_Pumps_8">Pump 8</th>
+								<th colspan="4" v-if="NSPS_Pumps_8">Pump 8</th>
+								<th colspan="2" v-if="!NSPS_Pumps_9">Pump 9</th>
+								<th colspan="5" v-if="NSPS_Pumps_9">Pump 9</th>
+							</tr>
+
+							<tr>
+								<th><span class="glyphicon glyphicon-ok"></span></th>
+								<th v-if="NSPS_Pumps_6">Phase 1</th>
+								<th v-if="NSPS_Pumps_6">Phase 2</th>
+								<th v-if="NSPS_Pumps_6">Phase 3</th>
+								<th><span class="glyphicon glyphicon-ok"></span></th>
+								<th v-if="NSPS_Pumps_7">Phase 1</th>
+								<th v-if="NSPS_Pumps_7">Phase 2</th>
+								<th v-if="NSPS_Pumps_7">Phase 3</th>
+								<th>Air Pressure</th>
+								<th><span class="glyphicon glyphicon-ok"></span></th>
+								<th v-if="NSPS_Pumps_8">Phase 1</th>
+								<th v-if="NSPS_Pumps_8">Phase 2</th>
+								<th v-if="NSPS_Pumps_8">Phase 3</th>
+								<th><span class="glyphicon glyphicon-ok"></span></th>
+								<th v-if="NSPS_Pumps_9">Phase 1</th>
+								<th v-if="NSPS_Pumps_9">Phase 2</th>
+								<th v-if="NSPS_Pumps_9">Phase 3</th>
+								<th>Air Pressure</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+                <td>{{ round.rTime }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.NSPS_Volts" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.NSPS_Amps" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.NSPS_Flow" :disabled="editable(index)" v-on:change="update('NSPS_flow', index)"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.NSPS_PSI" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.NSPS_NTU" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.NSPS_CI2" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="checkbox" v-model="round.NSPS_Pumps_6" :true-value="1" :false-value="0" :disabled="editable(index)" v-on:change="update()"></input></td>
+                <td v-if="NSPS_Pumps_6" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_6_A" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="NSPS_Pumps_6" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_6_B" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="NSPS_Pumps_6" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_6_C" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="checkbox" v-model="round.NSPS_Pumps_7" :true-value="1" :false-value="0" :disabled="editable(index)" v-on:change="update()"></input></td>
+                <td v-if="NSPS_Pumps_7" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_7_A"  :disabled="editable(index)"v-on:change="update()"></td>
+                <td v-if="NSPS_Pumps_7" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_7_B" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="NSPS_Pumps_7" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_7_C" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_7_Num" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="checkbox" v-model="round.NSPS_Pumps_8" :true-value="1" :false-value="0" :disabled="editable(index)" v-on:change="update()"></input></td>
+                <td v-if="NSPS_Pumps_8" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_8_A" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="NSPS_Pumps_8" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_8_B" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="NSPS_Pumps_8" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_8_C" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="checkbox" v-model="round.NSPS_Pumps_9" :true-value="1" :false-value="0" :disabled="editable(index)" v-on:change="update()"></input></td>
+                <td v-if="NSPS_Pumps_9" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_9_A" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="NSPS_Pumps_9" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_9_B" :disabled="editable(index)" v-on:change="update()"></td>
+                <td v-if="NSPS_Pumps_9" :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_9_C" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" :class="{ highlight: editable(index) }" v-model="round.NSPS_9_Num" :disabled="editable(index)" v-on:change="update()"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="rawflow" class="tab-pane fade" v-bind:class="{'active': currentTab == 'rawflow', 'in': currentTab == 'rawflow' }" v-show="currentTab == 'rawflow'">
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th rowspan="2">Time</th>
+								<th rowspan="2">North Flow</th>
+								<th rowspan="2">South Flow</th>
+								<th rowspan="2">Total Flow</th>
+								<th colspan="3">UTI</th>
+
+								<th colspan="3">INT</th>
+
+								<th rowspan="2">North Raw Valve (%)</th>
+								<th rowspan="2">South Raw Valve (%)</th>
+							</tr>
+              <tr>
+                <th>UTI Pump(s)</th>
+                <th>Motor Set Point</th>
+								<th>Valve Set Point</th>
+                <th>INT Pump(s)</th>
+                <th>Motor Set Point</th>
+								<th>Valve Set Point</th>
+              </tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+								<td>{{ round.rTime }}</td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.raw_flow_north" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.raw_flow_south" :disabled="editable(index)" v-on:change="update()"></td>
+								<td class="greyOut">{{ (parseFloat(round.raw_flow_north) || 0) + (parseFloat(round.raw_flow_south) || 0) }}</td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" v-model="round.utiString" :disabled="editable(index)" v-on:change="parseSlash('utiString', index)"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" v-model="round.uti3_sp" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" v-model="round.uti3_valve" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" v-model="round.intString" :disabled="editable(index)" v-on:change="parseSlash('intString', index)"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" v-model="round.int_sp" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" v-model="round.int_valve" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.north_raw_valve" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.south_raw_valve" :disabled="editable(index)" v-on:change="update()"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+        <div id="apa" class="tab-pane fade" v-bind:class="{'active': currentTab == 'apa', 'in': currentTab == 'apa' }" v-show="currentTab == 'apa'">
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th rowspan="2">Time</th>
+								<th colspan="4">Sample #1</th>
+								<th colspan="4">Sample #2</th>
+							</tr>
+							<tr>
+								<th>Total Chlorine</th>
+								<th>Free Ammonia</th>
+								<th>Total Ammonia</th>
+								<th>Ratio</th>
+								<th>Total Chlorine</th>
+								<th>Free Ammonia</th>
+								<th>Total Ammonia</th>
+								<th>Ratio</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+                <td>{{ round.rTime }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(5.2, 4.00, round.APA_CL2_S1) }"><input type="number" class="input-field" v-model="round.APA_CL2_S1" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(0.1, 0.01, round.APA_FreeNH3_S1) }"><input type="number" class="input-field" v-model="round.APA_FreeNH3_S1" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(1.2, 0.8, round.APA_TotalNH3_S1) }"><input type="number" class="input-field" v-model="round.APA_TotalNH3_S1" :disabled="editable(index)" v-on:change="update()"></td>
+                <td class="greyOut">{{ apa_ratio(round.APA_CL2_S1, round.APA_TotalNH3_S1) }}</td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(5.2, 4.00, round.APA_CL2_S2) }"><input type="number" class="input-field" v-model="round.APA_CL2_S2" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(0.1, 0.01, round.APA_FreeNH3_S2) }"><input type="number" class="input-field" v-model="round.APA_FreeNH3_S2" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(1.2, 0.8, round.APA_TotalNH3_S2) }"><input type="number" class="input-field" v-model="round.APA_TotalNH3_S2" :disabled="editable(index)" v-on:change="update()"></td>
+                <td class="greyOut">{{ apa_ratio(round.APA_CL2_S2, round.APA_TotalNH3_S2) }}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<div id="carbon" class="tab-pane fade" v-bind:class="{'active': currentTab == 'carbon', 'in': currentTab == 'carbon' }" v-show="currentTab == 'carbon'">
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th>Time</th>
+								<th>lbs/hr</th>
+								<th>lbs/2hr</th>
+								<th>Added</th>
+								<th>Took</th>
+								<th>Left</th>
+								<th>Bin</th>
+                <th>Operator Initials</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in rounds">
+								<td>{{ round.rTime }}</td>
+								<td>{{ calculateCarbonSP(index).toFixed(2) }}</td>
+								<td>{{ (parseFloat(calculateCarbonSP(index)) * 2).toFixed(2) }}</td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index), alert: !validate(calculatedData.Carbon_bags * 1.05, calculatedData.Carbon_bags * 0.95, round.carbon_added) }"><input type="number" class="input-field" v-model="round.carbon_added" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.carbon_took" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.carbon_left" :disabled="editable(index)" v-on:change="update()"></td>
+								<td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="number" class="input-field" v-model="round.carbon_bin" :disabled="editable(index)" v-on:change="update()"></td>
+                <td :class="{ highlight: !editable(index), greyOut: editable(index) }"><input type="text" class="input-field" v-model="round.operator" :disabled="editable(index)" v-on:change="update()"></td>
+              </tr>
+						</tbody>
+					</table>
+				</div>
+
+        <div id="flowCalc" class="tab-pane fade" v-bind:class="{'active': currentTab == 'flowCalc', 'in': currentTab == 'flowCalc' }" v-show="currentTab == 'flowCalc'">
+					<table class="table table-bordered table-sm table-responsive">
+            <thead>
+              <tr>
+                <th rowspan="3" colspan="2" class="text-center">Flow</th>
+                <th colspan="1">Cl2 mg/l</th>
+                <th colspan="1">NH3 Ratio</th>
+                <th colspan="1">North  Lime</th>
+                <th colspan="1">South Lime</th>
+                <th colspan="1">Ferric</th>
+                <th colspan="1">Poly 1</th>
+                <th colspan="1">Poly 2</th>
+                <th colspan="1">Carbon</th>
+                <th colspan="1"></th>
+              </tr>
+              <tr >
+                <th>lbs/day</th>
+                <th>lbs/day</th>
+                <th>mg/l</th>
+                <th>mg/l</th>
+                <th>mls/min</th>
+                <th>stroke/min</th>
+                <th>stroke/min</th>
+                <th>% feed rate</th>
+                <th></th>
+              </tr>
+              <tr>
+                <th class="col-sm-1 highlight"><input type="number" v-model="calculatedData.cl2" v-on:change="calculate('cl2', calculatedData.cl2)"></th>
+                <th class="col-sm-1 highlight"><input type="number" v-model="calculatedData.nh3" v-on:change="calculate('nh3', calculatedData.nh3)"></th>
+                <th class="col-sm-1 highlight"><input type="number" v-model="calculatedData.north_lime" v-on:change="calculate('north_lime', calculatedData.north_lime)"></th>
+                <th class="col-sm-1 highlight"><input type="number" v-model="calculatedData.south_lime" v-on:change="calculate('south_lime', calculatedData.south_lime)"></th>
+                <th class="col-sm-1 highlight"><input type="number" v-model="calculatedData.ferric" v-on:change="calculate('ferric', calculatedData.ferric)"></th>
+                <th class="col-sm-1 highlight"><input type="number" v-model="calculatedData.poly1" v-on:change="calculate('poly1', calculatedData.poly1)"></th>
+                <th class="col-sm-1 highlight"><input type="number" v-model="calculatedData.poly2" v-on:change="calculate('poly2', calculatedData.poly2)"></th>
+                <th class="col-sm-1 highlight"><input type="number" v-model="calculatedData.carbon" v-on:change="calculate('carbon', calculatedData.carbon)"></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr> <!-- Row 1 -->
+                <th class="col-sm-1 blue">North</th>
+                <td class="col-sm-1 highlight"><input type="number" v-model="calculatedData.flow_north" v-on:change="calculate('flow_north', calculatedData.flow_north)"></td>
+                <td>{{ calculatedData.Cl2_north }}</td>
+                <td>{{ calculatedData.NH3_north }}</td>
+                <td>{{ calculatedData.Lime_north }}</td>
+                <td></td>
+                <td>{{ calculatedData.ferric_north }}</td>
+                <td>{{ calculatedData.Poly_north }}</td>
+                <td></td>
+                <td>{{ calculatedData.Carbon_025 }}</td>
+                <th class="blue">0.25:1</th>
+              </tr>
+              <tr><!-- Row 2 -->
+                <th class="blue">South</th>
+                <td class="col-sm-1 highlight"><input type="number" v-model="calculatedData.flow_south" v-on:change="calculate('flow_south', calculatedData.flow_south)"></td>
+                <td>{{ calculatedData.Cl2_south }}</td>
+                <td>{{ calculatedData.NH3_south }}</td>
+                <td></td>
+                <td>{{ calculatedData.Lime_south }}</td>
+                <td>{{ calculatedData.ferric_south }}</td>
+                <td></td>
+                <td>{{ calculatedData.Poly_south }}</td>
+                <td>{{ calculatedData.Carbon_050 }}</td>
+                <th class="blue">0.50:1</th>
+              </tr>
+              <tr class="bg-info"> <!-- Row 3 -->
+                <th class="blue">Total</th>
+                <td class="col-sm-1 text-left">{{  calculatedData.Flow_Total }}</td>
+                <td >{{ calculatedData.Cl2_total }}</td>
+                <td >{{ calculatedData.NH3_total }}</td>
+                <td >{{ calculatedData.Lime_north_total }}</td>
+                <td >{{ calculatedData.Lime_south_total }}</td>
+                <td >{{ calculatedData.ferric_total }}</td>
+                <td colspan="2" class="text-center">{{ calculatedData.Poly_total }}</td>
+
+                <td >{{ calculatedData.Carbon_075 }}</td>
+                <th class="blue">0.75:1</th>
+              </tr>
+              <tr><!-- Row 4 -->
+                <th class="blue">Post (mg/L)</th>
+                <td class="col-sm-1  highlight"><input type="number" v-model="calculatedData.flow_post" v-on:change="calculate('flow_post', calculatedData.flow_post)"></td>
+                <td>{{ calculatedData.Cl2_post }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{{ calculatedData.Carbon_100 }}</td>
+                <th class="blue">1:1</th>
+              </tr>
+              <tr><!-- Row 5 -->
+                <td ></td>
+                <td colspan="3"></td>
+                <th class="blue">lbs/1hr</th>
+                <th class="blue">lbs/1hr</th>
+                <th class="blue">ml/2hr</th>
+                <th class="blue">lbs/2hr</th>
+                <th class="blue">lbs/2hr</th>
+                <th class="blue">lbs/1hr</th>
+                <td class="blue"></td>
+              </tr>
+              <tr><!-- Row 6 -->
+                <td ></td>
+                <td colspan="3"></td>
+
+                <td>{{ calculatedData.Lime_north_lbs_1hr }}</td>
+                <td>{{ calculatedData.Lime_south_lbs_1hr }}</td>
+                <td>{{ calculatedData.ferric_ml_2hr_total }}</td>
+                <td>{{ calculatedData.Poly_north_lbs_2hr }}</td>
+                <td>{{ calculatedData.Poly_south_lbs_2hr }}</td>
+                <td>{{ calculatedData.Carbon_lbs_1hr }}</td>
+                <th class="blue"></th>
+              </tr>
+              <tr><!-- Row 6 -->
+                <td ></td>
+                <td colspan="6">
+                  Input a total flow to search historical data:
+                  <input type="number" v-model="searchFlow"></input>
+                  <button class="btn btn-primary btn-sm editBtn" v-on:click="searchFlowCalcByFlow(searchFlow)">SEARCH</button>
+                </td>
+                <td colspan="2" class="text-center">{{ calculatedData.Poly_total_lbs_2hr }}</td>
+
+                <td>{{ calculatedData.Carbon_bags }}</td>
+                <th class="blue">Bags</th>
+              </tr>
+            </tbody>
+          </table>
+				</div>
+
+        <div id="lastFlow" class="tab-pane fade" v-bind:class="{'active': currentTab == 'lastFlow', 'in': currentTab == 'lastFlow' }" v-show="currentTab == 'lastFlow'">
+
+          <label>Search For Last Flow:</label>
+          <input type="number" v-model="lastFlow"></input>
+          <button class="btn btn-primary btn-sm editBtn" v-on:click="getLastFlow(lastFlow)">SEARCH</button>
+
+          <h4 v-if="lastFlowSp[0]" style="font-size: 1.3em;">{{ lastFlowSp[0]._date.split('-')[1] + "/" + lastFlowSp[0]._date.split('-')[2] + "/" + lastFlowSp[0]._date.split('-')[0] }}  {{ lastFlowSp[0]._time }}</h4>
+
+					<table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th colspan="3" class="border-left">Chlorine</th>
+								<th colspan="3" class="border-left">Ferric</th>
+								<th colspan="4" class="border-left">Lime</th>
+								<th colspan="4" class="border-left">Poly</th>
+								<th colspan="3" class="border-left">Ammonia</th>
+								<th class="border-left">Carbon</th>
+							</tr>
+              <tr>
+                <th rowspan="2" class="border-left">Chlor #1</th>
+                <th rowspan="2">Chlor #2</th>
+                <th rowspan="2">Chlor #3</th>
+                <th rowspan="2" class="border-left">Pump #1</th>
+                <th rowspan="2">Pump #2</th>
+                <th rowspan="2">Pump #3</th>
+                <th colspan="2" class="border-left">Machine #1</th>
+                <th colspan="2">Machine #2</th>
+                <th colspan="2" class="border-left">Pump #1</th>
+                <th colspan="2">Pump #2</th>
+                <th rowspan="2" class="border-left">Amm #1</th>
+                <th rowspan="2">Amm #2</th>
+                <th rowspan="2">Amm #3</th>
+                <th rowspan="2" class="border-left">Bags</th>
+              </tr>
+              <tr>
+                <th class="border-left">SP</th>
+                <th>Lbs</th>
+                <th>SP</th>
+                <th>Lbs</th>
+                <th class="border-left">SP</th>
+                <th>Stk/min</th>
+                <th>SP</th>
+                <th class="border-right">Stk/min</th>
+              </tr>
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in lastFlowSp" style="font-size: 1.3em;">
+								<td style="background-color: yellow;" class="border-left">{{ round.chlor1_lbs }}</td>
+								<td style="background-color: yellow;">{{ round.chlor2_lbs }}</td>
+								<td style="background-color: yellow;">{{ round.chlor3_lbs }}</td>
+                <td style="background-color: yellow;" class="border-left">{{ round.ferr_pump1_set }}</td>
+								<td style="background-color: yellow;">{{ round.ferr_pump2_set }}</td>
+								<td style="background-color: yellow;">{{ round.ferr_pump3_set }}</td>
+                <td style="background-color: yellow;" class="border-left">{{ round.lime_1n_set }}</td>
+								<td style="background-color: yellow;">{{ round.lime_1n_lbs }}</td>
+								<td style="background-color: yellow;">{{ round.lime_2s_set }}</td>
+                <td style="background-color: yellow;">{{ round.lime_2s_lbs }}</td>
+                <td style="background-color: yellow;" class="border-left">{{ round.poly_pump1_set }}</td>
+                <td style="background-color: yellow;">{{ round.poly_pump1_stk }}</td>
+                <td style="background-color: yellow;">{{ round.poly_pump2_set }}</td>
+                <td style="background-color: yellow;">{{ round.poly_pump2_stk }}</td>
+                <td style="background-color: yellow;" class="border-left">{{ round.amm1_lbs }}</td>
+								<td style="background-color: yellow;">{{ round.amm2_lbs }}</td>
+								<td style="background-color: yellow;">{{ round.amm3_lbs }}</td>
+                <td style="background-color: yellow;" class="border-left">{{ round.carbon_added }}</td>
+							</tr>
+						</tbody>
+					</table>
+
+          <table class="table table-bordered table-condensed">
+						<thead>
+							<tr>
+                <th colspan="3" class="border-left">UTI</th>
+                <th colspan="3" class="border-right border-left">Intake</th>
+							</tr>
+              <tr>
+                <th class="border-left">UTI Pump(s)</th>
+                <th>Motor Set Pt.</th>
+                <th>Valve Set Pt.</th>
+                <th class="border-left">INT Pump(s)</th>
+                <th>Motor Set Pt.</th>
+                <th class="border-right">Valve Set Pt.</th>
+              </tr>
+
+						</thead>
+						<tbody>
+							<tr v-for="(round, index) in lastFlowSp" style="font-size: 1.3em;">
+                <td style="background-color: yellow;" class="border-left">{{ round.utiString }}</td>
+                <td style="background-color: yellow;">{{ round.uti3_sp }}</td>
+                <td style="background-color: yellow;">{{ round.uti3_valve }}</td>
+                <td style="background-color: yellow;" class="border-left">{{ round.intString }}</td>
+                <td style="background-color: yellow;">{{ round.int_sp }}</td>
+                <td style="background-color: yellow;" class="border-right">{{ round.int_valve }}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+      <button id="download-csv" v-on:click="exportTableToCSV('daily_rounds_sheet.csv')">Download Excel File</button>
+			<div class="spinner" v-if="loading"></div>
+      <div class="text-center">
+        <button class="btn btn-primary btn-sm editBtn" v-on:click="upload($event)">SAVE</button>
+				<button class="btn btn-primary btn-sm editBtn" v-on:click="edit">EDIT</button>
+      </div>
+
+		</div>
+    <script src="./main.js?v=1.1.2"></script>
+    <script>
+      
+      // myData.socket.on('connect_error', function() {
+      //   app.connectStatus = false;
+      // });
+
+      // myData.socket.on('connect', function() {
+      //   app.connectStatus = true;
+      // });
+    </script>
+  </body>
+</html>

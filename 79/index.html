@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Title</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      
+      .highlight {
+        background-color: yellow !important;
+      }
+
+      .error {
+        background-color: #ff3333;
+      }
+      
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+      
+      /* Scrollable table body */
+      .table-fixed tbody {
+          display:block;
+          height:700px;
+          overflow:auto;
+      }
+      .table-fixed thead, tbody tr {
+          display:table;
+          width:100%;
+          table-layout:fixed;
+      }
+      .table-fixed thead {
+          width: calc( 100% - 1em );
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <h4 class="text-center">{{ months[month - 1] }} Free Copper (Daily)</h4>
+      <table class="table table-fixed table-bordered table-condensed">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Raw Lake Water</th>
+            <th>Pre CIG</th>
+            <th>Post CIG</th>
+            <th>CT</th>
+            <th class="editBtn"></th>
+          </tr>
+
+        </thead>
+        <tbody>
+          <tr v-for="date in data">
+            <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date._date }}</td>
+            <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ convert(date.raw_plant_copper) }}</td>
+            <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ convert(date.lake_copper) }}</td>
+            <td :class="{ highlight: (date.day.get('date') === today.get('date')), error: (parseFloat(date.post_cig)) >= 7 }">{{ date.post_cig }}</td>
+            <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ convert(date.ct_copper) }}</td>
+            <!-- <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.lagoon_copper }}</td> -->
+            <td class="editBtn" :class="{ highlight: (date.day.get('date') === today.get('date')) }">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=79&record=' + date.PSOFIA_RecordNumber + '#96'" target="_blank" v-if="date.PSOFIA_RecordNumber">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=79'" target="_blank" v-if="!date.PSOFIA_RecordNumber">NEW</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.0"></script>
+    <script src="../components/update.js?v=1.2"></script>
+  </body>
+</html>

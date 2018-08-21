@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Water Links</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    
+    <!-- google icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Product+Sans:400,400i,700,700i" rel="stylesheet" type="text/css">
+    
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+		<script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.min.css">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://momentjs.com/downloads/moment.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+
+		<style type="text/css">
+			html, body {
+				height: 100%;
+				width: 100%;
+				padding: 0;
+				overflow: auto;
+				font-family: arial;
+				color: grey;
+				/*color: #00334d;*/
+			}
+
+			.padded {
+				padding-top: 10px;
+			}
+
+			.jumbotron {        
+				background-color: #0275d8;
+				padding-left: 20px;
+        color: white;
+			}
+      
+      .card-header {
+        background-color: #489BE2;
+        color: black;
+      }
+      
+      nav {
+        border-bottom: 1px solid grey;
+        background-color: #b3d9ff;
+        color: grey;
+      }
+      
+      .inline {
+        display: inline !important;
+      }
+      
+      .inline-right {
+        display: inline !important;
+        float: right;
+      }
+      
+      .back-to-top {
+        background: none;
+        margin: 0;
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 70px;
+        height: 70px;
+        z-index: 100;
+        display: none;
+        text-decoration: none;
+        color: #ffffff;
+        background-color: #ff9000;
+      }
+
+      .back-to-top i {
+        font-size: 60px;
+      }
+      
+      .pad-right {
+        margin-right: 5em;;
+      }
+      
+      .fab {
+        padding-left: 30px;
+        font-size: 1.3em;
+      }
+      
+      #fab {
+          background-color: #F44336;
+          width: 60px;
+          height: 60px;
+          border-radius: 100%;
+          background: #F44336;
+          border: none;
+          outline: none;
+          color: #FFF;
+          font-size: 32px;
+          box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+/*
+          position: fixed;
+          bottom: 0;
+          right: 0;
+        */
+          margin-right: 16px;
+          margin-bottom: 16px;
+
+          
+      }
+      .white-text {
+        text-decoration-color: white;
+        color: white;
+      }
+
+      #fab:hover {
+          background: #EF5350;
+          cursor: pointer;
+      }
+      i {
+        font-size: 1.3em;
+        margin: 0;
+        padding-left: 20px;
+        vertical-align: middle;
+      }
+
+			/* IE 6 doesn't support max-height
+			* we use height instead, but this forces the menu to always be this tall
+			*/
+			* html .ui-autocomplete {
+				height: 250px;
+			}
+      
+      /* Fix for datepicker ghost on bottom of page */
+      #app .datepicker-days {
+        display: none !important;
+      }
+
+      .modal-mask {
+        position: fixed;
+        z-index: 9998;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, .5);
+        display: table;
+        transition: opacity .3s ease;
+      }
+
+      .modal-wrapper {
+        display: table-cell;
+        vertical-align: middle;
+      }
+
+      .modal-container {
+        width: 500px;
+        margin: 0px auto;
+        padding: 20px 30px;
+        background-color: #fff;
+        border-radius: 2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+        transition: all .3s ease;
+        font-family: Helvetica, Arial, sans-serif;
+      }
+
+      .modal-header h3 {
+        margin-top: 0;
+        color: #42b983;
+      }
+
+      .modal-body {
+        margin: 20px 0;
+      }
+
+      .modal-default-button {
+        float: right;
+      }
+
+      /*
+       * The following styles are auto-applied to elements with
+       * transition="modal" when their visibility is toggled
+       * by Vue.js.
+       *
+       * You can easily play with the modal transition by editing
+       * these styles.
+       */
+
+      .modal-enter {
+        opacity: 0;
+      }
+
+      .modal-leave-active {
+        opacity: 0;
+      }
+
+      .modal-enter .modal-container,
+      .modal-leave-active .modal-container {
+        -webkit-transform: scale(1.1);
+        transform: scale(1.1);
+      }
+
+		</style>
+	</head>
+	<body>
+    
+    <div id="app">
+
+      <modal v-if="showModal" @close="showModal = false">
+        <!--
+          you can use custom content here to overwrite
+          default content
+        -->
+        <h3 slot="header">Duplicate Entry Found</h3>
+        <p slot="body">There was more than one entry submitted for the following time slot. Please choose the entry to be deleted.</p>
+        <ul slot="body">
+          <li v-for="duplicate in duplicates"><a :href="duplicate.Link">{{ duplicate._Time }} - {{ checkForm(duplicate.FormID) }} - Review/Delete</a></li>
+        </ul>
+      </modal>
+
+      <div class="jumbotron" id="home"><h1 class="inline">Water Forms and Reports</h1>
+        <h2 class="inline-right pad-right"><a href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=61&record=4ce8af5c21804907a27537e727e81066" target="_blank" class="white-text">On-Call: {{ data.oncall }}</a></h2>
+        <p>Select a report or form from the list below</p>
+        <h2 class="inline-right pad-right">Lake Level: {{ lakelevel }}</h2>
+      </div>
+      <div class="container" data-provide="datepicker">
+        <div class="card" id="dosages">
+          <div class="card-header">
+            <h3 class="inline">Date: {{ date.toLocaleDateString() }}</h3>
+            <datepicker class="inline-right" depth="days" start="month" v-model="dateString" v-on:input="updateMonth"></datepicker>
+          </div>
+        </div>
+        <br>
+          
+        <div class="card">
+          <div class="card-header" role="button" data-toggle="collapse" aria-expanded="true" href="#dosagesCard" aria-controls="dosagesCard">
+            <h3>Dosages</h3>
+          </div>
+          
+          
+          <div class="card-block" id="dosagesCard">
+            <table class="table table-condensed">
+              <tbody>
+                <tr>
+                  <th>Polymer</th>
+                  <td>{{ data.poly_dosage }} mg/L</td>
+                  <td><a class="btn btn-secondary btn-xs" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=61&record=4ce8af5c21804907a27537e727e81066" target="_blank" role="button">Update</a></td>
+                </tr>
+                <tr>
+                  <th>Ammonia</th>
+                  <td colspan="2">{{ data.nh3_dosage }} mg/L</td>
+                </tr>
+                <tr>
+                  <th>Ferric</th>
+                  <td>North: {{ data.ferr_north_dosage }} mg/L</td>
+                  <td>South: {{ data.ferr_south_dosage }} mg/L</td>
+                </tr>
+                <tr>
+                  <th>Post Cl2</th>
+                  <td>{{ data.post_dosage }} mg/L</td>
+                  <td>{{ data.post_status }}</td>
+                </tr>
+                <tr>
+                  <th>Mix Cl2</th>
+                  <td colspan="2">{{ data.cl2_lower }} - {{ data.cl2_upper }}</td>
+                </tr>
+                <tr>
+                  <th>Floc pH</th>
+                  <td>{{ data.ph_lower }} - {{ data.ph_upper }}</td>
+                </tr>
+                <tr>
+                  <th>Carbon</th>
+                  <td>{{ data.carbon_dosage }} mg/L</td>
+                  <td>{{ data.carbon_status }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <br>
+
+        <div class="card" id="lab">
+          <h3  class="card-header" role="button" data-toggle="collapse" href="#labCard" aria-expanded="false" aria-controls="labCard">Lab</h3>
+          <div class="card-block collapse" id="labCard">
+            <h3 class="card-title">Daily Water Analysis</h3>  
+            <a class="btn btn-primary" :href="dailyWaterAnalysisUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=37" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=37" target="_blank">Edit</a>
+        
+-->
+            <hr>
+            <h3 class="card-title padded">Daily Chlorine Residual Report</h3>
+            <a class="btn btn-primary" :href="dailyChlorineResidualUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=48" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=48" target="_blank">Edit</a>
+-->
+
+<!--
+            <hr>
+            <h3 class="card-title padded">Daily Miscellaneous (Fluoride, D.O., Lake Level, and Clarifier NTU)</h3>
+            <a class="btn btn-primary" :href="dailyChlorineResidualUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=49" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=49" target="_blank">Edit</a>
+-->
+
+          </div>
+        </div>
+        <br>
+        
+        <div class="card" id="rounds">
+          <h3  class="card-header" role="button" data-toggle="collapse" href="#roundsCard" aria-expanded="false" aria-controls="roundsCard">Rounds</h3>
+          <div class="card-block collapse" id="roundsCard">
+            <h3 class="card-title">Rounds Sheet</h3>
+            <a class="btn btn-primary" :href="roundSheetUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=36" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=36" target="_blank">Edit</a>
+            
+-->
+            <hr>
+            
+            <h3 class="card-title padded">Flow Calculator</h3>
+            <a class="btn btn-primary" :href="flowCalcUrl" target="_blank" role="button">Latest Calculation</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=38" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=38" target="_blank">Edit</a>
+-->
+
+          </div>
+        </div>
+        <br>
+        
+        <div class="card" id="clipboards">
+          <h3  class="card-header" role="button" data-toggle="collapse" href="#clipboardCard" aria-expanded="false" aria-controls="clipboardCard">Clipboards</h3>
+          <div class="card-block collapse" id="clipboardCard">
+            
+<!--
+            <h3 class="card-title">Pump Changes (Upfront)</h3>
+            <a class="btn btn-primary" :href="pumpChangesUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=65" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=65" target="_blank">Edit</a>
+            <hr>
+-->
+<!--
+            <h3 class="card-title">WTP-013 - Finished Water Data (Upfront)</h3>
+            <a class="btn btn-primary" :href="finishedWaterUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=64" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=64" target="_blank">Edit</a>
+            <hr>
+-->
+            <h3 class="card-title">Free Copper Monitoring</h3>
+            <a class="btn btn-primary" :href="copperUrl" target="_blank" role="button">{{ monthName }} Sheet</a>
+            
+            <hr>
+            
+            <h3 class="card-title">WTP-028 - Fluoride, pH Probe, and Turbidimeter Calibration</h3>
+            <a class="btn btn-primary" :href="phCalibrationUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=68" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=68" target="_blank">Edit</a>
+-->
+            
+            <hr>
+            <h3 class="card-title">WTP-035 - CT - Disinfectant Zone 1</h3>
+            <a class="btn btn-primary" :href="ctUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=69" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=69" target="_blank">Edit</a>
+-->
+            
+            <hr>
+            <h3 class="card-title">WTP-046 - Color/Odor</h3>
+            <a class="btn btn-primary" :href="colorOdorUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=71" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=71" target="_blank">Edit</a>
+-->
+            
+            <hr>
+            <h3 class="card-title">WTP-051 - Turbidimeter Calibration Hach 1720C</h3>
+            <a class="btn btn-primary" :href="turbCalUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=74" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=74" target="_blank">Edit</a>
+-->
+            
+            <hr>
+            <h3 class="card-title">WTP-069 - Clearwells</h3>
+            <a class="btn btn-primary" :href="clearwellsUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=72" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=72" target="_blank">Edit</a>
+-->
+            
+            <hr>
+            <h3 class="card-title">TOP-001 - Clarifier NTU</h3>
+            <a class="btn btn-primary" :href="clarNtuUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=70" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=70" target="_blank">Edit</a>
+-->
+            
+            <hr>
+            <h3 class="card-title">Manganese, Iron, Nitrate, and Free NH3</h3>
+            <a class="btn btn-primary" :href="mangUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+            
+            <hr>
+            <h3 class="card-title">WTP-70798 - Weekly Calibration Check for Continuous Turbidity Monitors and Recorders</h3>
+            <a class="btn btn-primary" :href="weeklyCalUrl" target="_blank" role="button">{{ monthName }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=75" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=75" target="_blank">Edit</a>
+-->
+          </div>
+        </div>
+        <br>
+        
+        <div class="card" id="midnight">
+          <h3  class="card-header" role="button" data-toggle="collapse" href="#midnightCard" aria-expanded="false" aria-controls="midnightCard">Midnight Paperwork</h3>
+          <div class="card-block collapse" id="midnightCard">
+            
+            <h3 class="card-title padded">Midnight Bleach & LAS</h3>
+            <a class="btn btn-primary" :href="bleachLasUrl" target="_blank" role="button">{{ monthName }} Bleach and LAS</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=53" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=53" target="_blank">Edit</a>
+-->
+            <hr>
+            
+            <h3>Electrical Readings</h3>
+            <a class="btn btn-primary" :href="electricalUrl" target="_blank" role="button">{{ year }} Electrical Readings</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=54" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=54" target="_blank">Edit</a>
+-->
+            <hr>
+            <h3>Meter Reading Worksheet</h3>
+            <a class="btn btn-primary" :href="metersUrl" target="_blank" role="button">{{ monthName }} Meter Reading Worksheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=50" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=50" target="_blank">Edit</a>
+-->
+            <hr>
+            
+            <h3>WTP-011 - Pump Hours</h3>
+            <a class="btn btn-primary" :href="pumpsUrl" target="_blank" role="button">{{ monthName }} Pump Hours</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=52" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=52" target="_blank">Edit</a>
+-->            
+            <hr>
+            <h3>SWMOR</h3>
+            <a class="btn btn-primary" :href="swmorUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} SWMOR Worksheet</a>
+            
+          </div>
+        </div>
+        
+        <br>
+        <div class="card" id="filters">
+          <h3  class="card-header" role="button" data-toggle="collapse" href="#filterCard" aria-expanded="false" aria-controls="filterCard">Filters</h3>
+          <div class="card-block collapse" id="filterCard">
+            <h3 class="card-title">WTP-006 - Daily Filter Records</h3>
+            <a class="btn btn-primary" :href="dailyFilterRecordsUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=56" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=56" target="_blank">Edit</a>
+-->
+            <hr>
+            <h3 class="card-title">TOP-004 - Filter Post Backwash Profile</h3>
+            <a class="btn btn-primary" :href="filterBackwashProfileUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+<!--
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=73" target="_blank">New</a>
+            <a class="fab" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=73" target="_blank">Edit</a>
+-->
+            
+            <hr>
+            <h3 class="card-title">TOP-002 - Filter Data Summary</h3>
+            <a class="btn btn-primary" :href="filterDataSumUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Sheet</a>
+            
+          </div>
+        </div>
+        <br>
+
+        <div class="card" id="weekly">
+          <h3  class="card-header" role="button" data-toggle="collapse" href="#weeklyCard" aria-expanded="false" aria-controls="weeklyCard">Weekly</h3>
+          <div class="card-header">Select Report Week: <datepicker depth="days" start="month" v-model="dateString" v-on:input="updateMonth"></datepicker></div>
+          <div class="card-block collapse" id="weeklyCard">
+            <h3 class="card-title">Chemical Inventory</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=60" target="_blank" role="button">New Chemical Inventory Entry</a></div>
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=60" target="_blank" role="button">View or Edit Chemical Inventory</a></div>
+            </div>
+            <hr>
+            <h3>Weekly Report Memo</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="weeklyUrl" target="_blank" role="button">Weekly Memo</a></div>
+            </div>
+          </div>
+        </div>
+        <br>
+
+        <div class="card" id="monthly">
+          <h3  class="card-header" role="button" data-toggle="collapse" href="#monthlyCard" aria-expanded="false" aria-controls="monthlyCard">Monthly Reports</h3>
+          <div class="card-header">Select Report Month: <datepicker depth="months" v-model="dateString" v-on:input="updateMonth"></datepicker></div>
+          <div class="card-block collapse" id="monthlyCard">
+            <h3>Electrical Readings</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="electricalUrl" target="_blank" role="button">{{ year }} Electrical Readings</a></div>
+            </div>
+<!--
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=54" target="_blank" role="button">New Electrical Reading Entry</a></div>
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=54" target="_blank" role="button">View or Edit Electrical Reading Entries</a></div>
+            </div>
+-->
+            <hr>
+            <h3>Daily Totals</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="dailyTotalsUrl" target="_blank" role="button">{{ date.toLocaleDateString() }} Daily Totals</a></div>
+            </div>
+            <hr>
+            <h3>Meter Reading Worksheet</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="metersUrl" target="_blank" role="button">{{ monthName }} Meter Reading Worksheet</a></div>
+            </div>
+<!--
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=50" target="_blank" role="button">Enter Meter Readings</a></div>
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=50" target="_blank" role="button">View or Edit Meter Readings</a></div>
+            </div>
+-->
+            <hr>
+            <h3>WTP-008 - Control Room Meter Readings</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="wtp008Url" target="_blank" role="button">{{ monthName }} Meter Readings</a></div>
+            </div>
+            <hr>
+            <h3>Purchased Water Meters</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="purchWaterUrl" target="_blank" role="button">{{ monthName }} Purchased Water Meters</a></div>
+            </div>
+            <hr>
+            <h3>WTP-011 - Pump Hours</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="pumpsUrl" target="_blank" role="button">{{ monthName }} Pump Hours</a></div>
+            </div>
+<!--
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=52" target="_blank" role="button">New Pump Hours Entry</a></div>
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=52" target="_blank" role="button">View or Edit Previous Pump Hours Entries</a></div>
+            </div>
+-->
+            <hr>
+            <h3>WTP-014 - Raw Water Pumpage</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="wtp014Url" target="_blank" role="button">{{ monthName }} Raw Water Pumpage</a></div>
+            </div>
+            <hr>
+            <h3>Water Usage</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="waterUsageUrl" target="_blank" role="button">{{ monthName }} Water Usage</a></div>
+            </div>
+            <hr>
+            <h3>PWMOR</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="pwmorUrl" target="_blank" role="button">{{ monthName }} PWMOR</a></div>
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=58" target="_blank" role="button">Update No. of Connections</a></div>
+            </div>
+            
+            <hr>
+            <h3>Monthly Composite Report</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="monCompUrl" target="_blank" role="button">{{ monthName }} MonCompReport</a></div>
+            </div>
+            <hr>
+            <h3>Monthly Totals Memo</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="monTotalUrl" target="_blank" role="button">{{ monthName }} Monthly Totals</a></div>
+            </div>
+          </div>
+        </div>
+
+        <br>
+        
+        <div class="card" id="yearly">
+          <h3  class="card-header" role="button" data-toggle="collapse" href="#yearlyCard" aria-expanded="false" aria-controls="yearlyCard">Yearly Reports</h3>
+          <div class="card-header">Select Report Year: <datepicker depth="years" v-model="dateString" v-on:input="updateMonth"></datepicker></div>
+          <div class="card-block collapse" id="yearlyCard">
+            <h3>Yearly Composite Report</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="yearlyCompUrl" target="_blank" role="button">{{ year }} Composite Report</a></div>
+            </div>
+            <hr>
+            <h3>Fiscal 3-Year Production Summary</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="threeYearProductionSummaryURL" target="_blank" role="button">Fiscal 3 Year Production Summary</a></div>
+            </div>
+            <hr>
+            <h3>Calendar 3-Year Production Summary</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="threeYearProductionSummary_CalendarURL" target="_blank" role="button">Calendar 3 Year Production Summary</a></div>
+            </div>
+
+            <hr>
+            <h3>Monthly Calculations (Fiscal and Calendar Year)</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" :href="waterCalcURL" target="_blank" role="button">Monthly Water Calculations</a></div>
+            </div>
+          </div>
+        </div>
+
+        <br>
+        
+        <div class="card" id="miscellaneous">
+          <h3  class="card-header" role="button" data-toggle="collapse" href="#miscCard" aria-expanded="false" aria-controls="miscCard">Miscellaneous</h3>
+          <div class="card-block collapse" id="miscCard">
+            <h3>Confined Space</h3>
+            <div class="row">
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=46" target="_blank" role="button">Enter Confined Space Form</a></div>
+              <div class="col-md-6"><a class="btn btn-primary" href="http://eservices.cityoflewisville.com/psofia/editform/default.aspx?formnumber=46" target="_blank" role="button">View or Edit Confined Space Form</a></div>
+            </div>
+          </div>
+        </div>
+
+        <br>
+        
+        
+      </div>
+    </div>
+    <a href="#" class="back-to-top"><i class="fa fa-arrow-circle-up"></i></a>
+    
+		<script src="./components/vue-datepicker.js?v=1.0"></script>
+		<script src="./main.js?v=1.0.4"></script>
+    
+    <!-- template for the modal component -->
+    <script type="text/x-template" id="modal-template">
+      <transition name="modal">
+        <div class="modal-mask">
+          <div class="modal-wrapper">
+            <div class="modal-container">
+
+              <div class="modal-header">
+                <slot name="header">
+                  
+                </slot>
+              </div>
+
+              <div class="modal-body">
+                <slot name="body">
+                  
+                </slot>
+              </div>
+
+              <div class="modal-footer">
+                <slot name="footer">
+                  
+                  <button class="modal-default-button" @click="$emit('close')">
+                    OK
+                  </button>
+                </slot>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </script>
+	</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Meter Reading Worksheet</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <style media="screen">
+      table th {
+        text-align: center;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      
+      .highlight {
+        background-color: yellow !important;
+      }
+      
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+      .blue {
+        background-color: #00bfff;
+      }
+      /* Scrollable table body */
+      .table-fixed tbody {
+          display:block;
+          height:700px;
+          overflow:auto;
+      }
+      .table-fixed thead, tbody tr {
+          display:table;
+          width:100%;
+          table-layout:fixed;
+      }
+      .table-fixed thead {
+          width: calc( 100% - 1em );
+      }
+      
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <h3 class="text-center">{{ months[month - 1] }} Metering Readings Worksheet</h3>
+      <ul class="nav nav-tabs">
+				<li :class="(currentTab == 'Plant Meters') ? 'active': '' "><a href="#" v-on:click="changeTab('Plant Meters')">Plant Meters</a></li>
+				<li :class="(currentTab == 'BW and Reclaim') ? 'active': '' "><a href="#" v-on:click="changeTab('BW and Reclaim')">BW and Reclaim</a></li>
+				<li :class="(currentTab == 'Dallas Water') ? 'active': '' "><a href="#" v-on:click="changeTab('Dallas Water')">Dallas Water</a></li>
+        <li>
+          <a :href="'http://apps.cityoflewisville.com/waterforms/PWMOR/index.html?record=' + record" target="_blank" v-if="record">PWMOR</a>
+          <a :href="'http://apps.cityoflewisville.com/waterforms/PWMOR/index.html?Year=' + yearParam + '&Month=' + monthParam" target="_blank" v-if="monthParam">PWMOR</a>
+        </li>
+        <li>
+          <a :href="'http://apps.cityoflewisville.com/waterforms/PurchasedWaterMeters/index.html?record=' + record" target="_blank" v-if="record">Purchased Water Meters</a>
+          <a :href="'http://apps.cityoflewisville.com/waterforms/PurchasedWaterMeters/index.html?Year=' + yearParam + '&Month=' + monthParam" target="_blank" v-if="monthParam">Purchased Water Meters</a>
+        </li>
+			</ul>
+      <div class="tab-content">
+				<div id="Dallas Water" class="tab-pane fade table-fixed" v-bind:class="{'active': currentTab == 'Dallas Water', 'in': currentTab == 'Dallas Water' }" v-show="currentTab == 'Dallas Water'">
+
+          <table class="table table-fixed table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th rowspan="2">Date</th>
+                <th colspan="4">Lewisville Meters</th>
+								<th colspan="3">Dallas Meters</th>
+								<th colspan="5">Lewisville Computer</th>
+								<th colspan="4">Dallas Computer</th>
+								<th rowspan="2" class="editBtn"></th>
+							</tr>
+							<tr class="headerRow3">
+								<th>ESPS</th>
+								<th>SSPS</th>
+								<th>MWPS</th>
+								<th>ESBS</th>
+                <th>ESPS</th>
+								<th>SSPS</th>
+								<th>MWPS</th>
+                <th>ESPS</th>
+                <th>SSPS</th>
+                <th>MWPS</th>
+                <th>ESBS</th>
+                <th>Lew. Totals</th>
+                <th>ESPS</th>
+                <th>SSPS</th>
+                <th>MWPS</th>
+                <th>Dallas Totals</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(date, index) in data">
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ formatDate(date.day) }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.ESPS_Lewisville_Meters }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.SSPS_Lewisville_Meters }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.MWPS_Lewisville_Meters }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.ESBS_Lewisville_Meters }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.ESPS_Dallas_Meters }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.SSPS_Dallas_Meters }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.MWPS_Dallas_Meters }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.ESPS_Lewisville_Computer }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.SSPS_Lewisville_Computer }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.MWPS_Lewisville_Computer }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.ESBS_Lewisville_Computer }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ lewTotals(index) }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.ESPS_Dallas_Computer }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.SSPS_Dallas_Computer }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.MWPS_Dallas_Computer }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ dallasTotals(index) }}</td>
+                <td class="editBtn" :class="{ highlight: (date.day.get('date') === today.get('date')) }">
+                  <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=50&record=' + date.PSOFIA_RecordNumber + '#96'" target="_blank" v-if="date.PSOFIA_RecordNumber">EDIT</a>
+                  <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=50'" target="_blank" v-if="!date.PSOFIA_RecordNumber">NEW</a>
+                </td>
+							</tr>
+              <tr class="bg-warning">
+                <th>Totals</th>
+                <td>{{ totals.ESPS_Lewisville_Meters }}</td>
+                <td>{{ totals.SSPS_Lewisville_Meters }}</td>
+                <td>{{ totals.MWPS_Lewisville_Meters }}</td>
+                <td>{{ totals.ESBS_Lewisville_Meters }}</td>
+                <td>{{ totals.ESPS_Dallas_Meters }}</td>
+                <td>{{ totals.SSPS_Dallas_Meters }}</td>
+                <td>{{ totals.MWPS_Dallas_Meters }}</td>
+                <td>{{ totals.ESPS_Lewisville_Computer }}</td>
+                <td>{{ totals.SSPS_Lewisville_Computer }}</td>
+                <td>{{ totals.MWPS_Lewisville_Computer }}</td>
+                <td>{{ totals.ESBS_Lewisville_Computer }}</td>
+                <td>{{ totals.lew_totals }}</td>
+                <td>{{ totals.ESPS_Dallas_Computer }}</td>
+                <td>{{ totals.SSPS_Dallas_Computer }}</td>
+                <td>{{ totals.MWPS_Dallas_Computer }}</td>
+                <td>{{ totals.dallas_totals }}</td>
+                <td></td>
+              </tr>
+						</tbody>
+            
+					</table>
+
+        </div>
+      </div>
+
+      <div class="tab-content">
+				<div id="BW and Reclaim" class="tab-pane fade" v-bind:class="{'active': currentTab == 'BW and Reclaim', 'in': currentTab == 'BW and Reclaim' }" v-show="currentTab == 'BW and Reclaim'">
+          <table class="table table-fixed table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th>Date</th>
+                <th colspan="2">Backwash</th>
+								<th colspan="2">Reclaim</th>
+								<th>Operator</th>
+								<th class="editBtn"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(date, index) in data">
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ formatDate(date.day) }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.Backwash }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("Backwash", index) }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.Reclaim }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("Reclaim", index) }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.Operator }}</td>
+                <td class="editBtn" :class="{ highlight: (date.day.get('date') === today.get('date')) }">
+                  <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=50&record=' + date.PSOFIA_RecordNumber + '#96'" target="_blank" v-if="date.PSOFIA_RecordNumber">EDIT</a>
+                  <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=50'" target="_blank" v-if="!date.PSOFIA_RecordNumber">NEW</a>
+                </td>
+							</tr>
+              <tr class="bg-warning">
+                <th>Totals</th>
+                <td>{{ totals.Backwash }}</td>
+                <td>{{ totals.Backwash_diff }}</td>
+                <td>{{ totals.Reclaim }}</td>
+                <td>{{ totals.Reclaim_diff }}</td>
+                <td></td>
+                <td></td>
+              </tr>
+						</tbody>
+            
+					</table>
+
+        </div>
+      </div>
+
+      <div class="tab-content">
+				<div id="Plant Meters" class="tab-pane fade" v-bind:class="{'active': currentTab == 'Plant Meters', 'in': currentTab == 'Plant Meters' }" v-show="currentTab == 'Plant Meters'">
+          <table class="table table-fixed table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th>Date</th>
+                <th colspan="2">North Raw</th>
+								<th colspan="2">South Raw</th>
+                <th colspan="2">Northside Vault</th>
+                <th colspan="2">Sludge</th>
+                <th colspan="2">S. Raw</th>
+                <th colspan="2">Finished</th>
+                <th colspan="2">Raw Vault</th>
+                <th colspan="2">Plant Electrical</th>
+                <th colspan="2">Northside Electrical</th>
+								<th class="editBtn"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(date, index) in data">
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ formatDate(date.day) }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.North_Raw }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("North_Raw", index) }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.South_Raw }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("South_Raw", index) }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.NS_Vault }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("NS_Vault", index) }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.Sludge }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("Sludge", index) }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.S_Raw }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("S_Raw", index) }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.Finished }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("Finished", index) }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.Raw_Vault }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("Raw_Vault", index) }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.Plant_Electrical }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("Plant_Electrical", index) }}</td>
+                <td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ date.NSPS_Electrical }}</td>
+								<td :class="{ highlight: (date.day.get('date') === today.get('date')) }">{{ getDifference("NSPS_Electrical", index) }}</td>
+								<td class="editBtn" :class="{ highlight: (date.day.get('date') === today.get('date')) }">
+                  <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=50&record=' + date.PSOFIA_RecordNumber + '#96'" target="_blank" v-if="date.PSOFIA_RecordNumber">EDIT</a>
+                  <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=50'" target="_blank" v-if="!date.PSOFIA_RecordNumber">NEW</a>
+                </td>
+							</tr>
+              <tr class="bg-warning">
+                <th>Totals</th>
+                <td>{{ totals.North_Raw }}</td>
+                <td>{{ totals.North_Raw_diff }}</td>
+                <td>{{ totals.South_Raw }}</td>
+                <td>{{ totals.South_Raw_diff }}</td>
+                <td>{{ totals.NS_Vault }}</td>
+                <td>{{ totals.NS_Vault_diff }}</td>
+                <td>{{ totals.Sludge }}</td>
+                <td>{{ totals.Sludge_diff }}</td>
+                <td>{{ totals.S_Raw }}</td>
+                <td>{{ totals.S_Raw_diff }}</td>
+                <td>{{ totals.Finished }}</td>
+                <td>{{ totals.Finished_diff }}</td>
+                <td>{{ totals.Raw_Vault }}</td>
+                <td>{{ totals.Raw_Vault_diff }}</td>
+                <td>{{ totals.Plant_Electrical }}</td>
+                <td>{{ totals.Plant_Electrical_diff }}</td>
+                <td>{{ totals.NSPS_Electrical }}</td>
+                <td>{{ totals.NSPS_Electrical_diff }}</td>
+                <td></td>
+              </tr>
+						</tbody>
+            
+					</table>
+        </div>
+      </div>
+      <button id="download-csv" v-on:click="exportTableToCSV('meter_reading_worksheet.csv')">Download Excel File</button>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.8"></script>
+    <script src="../components/update.js"></script>
+  </body>
+</html>

@@ -1,0 +1,169 @@
+* {
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+}
+
+h2 {
+	margin-bottom: -30px;
+}
+
+
+body {
+    /*background: #e2e1e0;*/
+    background: white;
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+}
+
+#toolbar {
+    background-color: transparent;
+    /*position: fixed;*/
+    left: 0;
+    width: 100%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    text-align: left;
+    padding: 12px;
+    margin: 0px;
+}
+
+#toolbar-title {
+    vertical-align: middle;
+    color: gray;
+    letter-spacing: 1px;
+    font-size: 20px;
+}
+.no-print {
+  display: none;
+}
+
+.text-center {
+  text-align: center;
+}
+
+#holder {
+    padding: 0px 24px 24px 24px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 2px;
+    /*margin: 1rem auto;*/
+    margin-bottom: 24px;
+    /*border: 1px lightgray solid;*/
+    /*padding: 16px;*/
+    text-align: left;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 42px 12px 36px 12px;
+    /*display: inline-table;*/
+    word-wrap: break-word;
+    /*page-break-inside: avoid;*/
+}
+
+#finalsign {
+	page-break-inside: avoid;
+}
+
+.diagram {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-right: 8px;
+}
+
+.table-title {
+    font-size: 16px;
+}
+
+
+tr {
+    border-bottom: 1px lightgray solid;
+}
+
+td {
+    padding: 8px 0px 8px 0px;
+    text-align: left;
+    font-size: 10px
+}
+
+th {
+    padding: 8px 24px 8px 0px;
+    text-align: left;
+    font-size: 10px;
+}
+
+.th-center {
+    text-align: center;
+    padding: 8px 0px 8px 0px;
+}
+
+#table-equipment td {
+	padding-right: 24px;
+}
+
+#fab {
+    background-color: #F44336;
+    width: 60px;
+    height: 60px;
+    border-radius: 100%;
+    background: #F44336;
+    border: none;
+    outline: none;
+    color: #FFF;
+    font-size: 36px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    margin-right: 16px;
+    margin-bottom: 16px;
+    display: none;
+}
+
+#approvedby {
+    max-width: 850px;
+    margin: 0 auto;
+    text-align: left;
+	font-size: 12px;
+	page-break-inside: avoid;
+}
+
+#error {
+    font-size: 20px;
+    color: red;
+    padding-top: 86px;
+}
+
+.active {
+    display: block;
+}
+
+.inactive {
+    display: none;
+}
+
+.nav-tabs {
+  display: none;
+}
+
+.editBtn {
+  display: none;
+}
+
+.td {
+  padding-left: 2em;
+  padding-right: 2em;
+
+}
+
+.text-right {
+  text-align: right;
+}
+.pad-right {
+  padding-right: 1em;
+}
+
+.text-left {
+  text-align: left;
+}

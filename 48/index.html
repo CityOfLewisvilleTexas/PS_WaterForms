@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Daily Chlorine Residual Report</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+		<script src="http://momentjs.com/downloads/moment.min.js"></script>
+		<script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+		<style type="text/css">
+  		html, body {
+  			height: 100%;
+  			width: 100%;
+  		}
+  		table {
+  			border: 2px solid #333 !important;
+  		}
+      thead tr:nth-of-type(2) th {
+        font-size: .8em;
+      }
+  		thead tr th{
+  			border-bottom: 2px solid #333 !important;
+  		}
+  		th.thickL, td.thickL {
+  			border-left: 2px solid #333 !important;
+  		}
+  		th.thickR, td.thickR {
+  			border-right: 2px solid #333 !important;
+  		}
+  		th, td {
+  			text-align: center;
+  		}
+  		tbody tr {
+  			height: 31px !important;
+  		}
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      
+      .highlight {
+        background-color: yellow !important;
+      }
+      
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+      
+  		@media print {
+  			html, body{}
+  			h5 {
+  				margin-bottom: 0px !important;
+  			}
+  			h3 {
+  				margin-top: 0px !important;
+  			}
+  			tr.headerRow2 th {
+  				font-size: .8em !important;
+  			}
+  			tr.headerRow3 th {
+  				font-size: .6em !important;
+  			}
+  			td, th {
+  				padding: 2px !important;
+  			}
+  			td {
+  				font-size: .75em !important;
+  			}
+  			tbody tr {
+  				height: 20px !important;
+  			}
+        table th.editBtn, table td.editBtn {
+          display: none;
+        }
+  		}
+		</style>
+  </head>
+  <body>
+    <div id="app" class="container-fluid">
+      <h3 class="text-center">{{ roundsDate }} Daily Chlorine Residual Report</h3>
+      <!-- Main table Finished/North Mix/South Mix -->
+      <table class="table table-bordered table-condensed">
+				<thead>
+					<tr>
+						<th rowspan="2" class="thickR">Time</th>
+						<th colspan="4" class="thickR">Finished Water</th>
+						<th colspan="4" class="thickR">North Mixed Water</th>
+						<th colspan="4" class="thickR">South Mixed Water</th>
+            <th rowspan="2" class="editBtn"></th>
+					</tr>
+					<tr >
+						<th class="thickL">Free</th>
+						<th>Mono</th>
+						<th>DI</th>
+						<th class="thickR">Total</th>
+            <th>Free</th>
+						<th>Mono</th>
+						<th>DI</th>
+						<th class="thickR">Total</th>
+            <th>Free</th>
+						<th>Mono</th>
+						<th>DI</th>
+						<th class="thickR">Total</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(round, index) in rounds">
+						<td class="thickL thickR" :class="{ highlight: checkTime(index) }">{{ round.rTime }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.fin_cl2_free }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.fin_cl2_mono }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.fin_cl2_di }}</td>
+						<td class="thickR" :class="{ highlight: checkTime(index) }">{{ total('fin', index) }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.north_mix_cl2_free }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.north_mix_cl2_mono }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.north_mix_cl2_di }}</td>
+						<td class="thickR" :class="{ highlight: checkTime(index) }">{{ total('north_mix', index) }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.south_mix_cl2_free }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.south_mix_cl2_mono }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.south_mix_cl2_di }}</td>
+						<td class="thickR" :class="{ highlight: checkTime(index) }">{{ total('south_mix', index) }}</td>
+            <td class="editBtn" :class="{ highlight: checkTime(index) }">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=48&record=' + round.psofia_recordid + '#96'" target="_blank" v-if="round.psofia_recordid">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=48'" target="_blank" v-if="!round.psofia_recordid">NEW</a>
+            </td>
+					</tr>
+				</tbody>
+      </table> <!-- END Main table Finished/North Mix/South Mix -->
+
+      <!-- Secondary table North settle/filter -->
+      <table class="table table-bordered table-condensed">
+				<thead>
+					<tr>
+						<th rowspan="2" class="thickR">Time</th>
+						<th colspan="4" class="thickR">North Settled</th>
+						<th colspan="4" class="thickR">North Filtered</th>
+            <th rowspan="2" class="editBtn"></th>
+					</tr>
+					<tr >
+						<th class="thickL">Free</th>
+						<th>Mono</th>
+						<th>DI</th>
+						<th class="thickR">Total</th>
+            <th>Free</th>
+						<th>Mono</th>
+						<th>DI</th>
+						<th class="thickR">Total</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(round, index) in rounds" v-if="index % 4 == 0">
+						<td class="thickL thickR" :class="{ highlight: checkTime(index) }">{{ round.rTime }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.north_settled_cl2_free }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.north_settled_cl2_mono }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.north_settled_cl2_di }}</td>
+						<td class="thickR" :class="{ highlight: checkTime(index) }">{{ total('north_settled', index) }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.north_filter_cl2_free }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.north_filter_cl2_mono }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.north_filter_cl2_di }}</td>
+						<td class="thickR" :class="{ highlight: checkTime(index) }">{{ total('north_filter', index) }}</td>
+						<td class="editBtn" :class="{ highlight: checkTime(index) }">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=48&record=' + round.psofia_recordid + '#96'" target="_blank" v-if="round.psofia_recordid">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=48'" target="_blank" v-if="!round.psofia_recordid">NEW</a>
+            </td>
+					</tr>
+				</tbody>
+      </table> <!-- END Secondary table North settle/filter -->
+
+      <!-- Tertiary table South settle/filter -->
+      <table class="table table-bordered table-condensed">
+				<thead>
+					<tr>
+						<th rowspan="2" class="thickR">Time</th>
+						<th colspan="4" class="thickR">South Settled</th>
+						<th colspan="4" class="thickR">South Filtered</th>
+            <th rowspan="2" class="editBtn"></th>
+					</tr>
+					<tr >
+						<th class="thickL">Free</th>
+						<th>Mono</th>
+						<th>DI</th>
+						<th class="thickR">Total</th>
+            <th>Free</th>
+						<th>Mono</th>
+						<th>DI</th>
+						<th class="thickR">Total</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(round, index) in rounds" v-if="index % 4 == 0">
+						<td class="thickL thickR" :class="{ highlight: checkTime(index) }">{{ round.rTime }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.south_settled_cl2_free }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.south_settled_cl2_mono }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.south_settled_cl2_di }}</td>
+						<td class="thickR" :class="{ highlight: checkTime(index) }">{{ total('south_settled', index) }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.south_filter_cl2_free }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.south_filter_cl2_mono }}</td>
+						<td :class="{ highlight: checkTime(index) }">{{ round.south_filter_cl2_di }}</td>
+						<td class="thickR" :class="{ highlight: checkTime(index) }">{{ total('south_filter', index) }}</td>
+            <td class="editBtn" :class="{ highlight: checkTime(index) }">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=48&record=' + round.psofia_recordid + '#96'" target="_blank" v-if="round.psofia_recordid">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=48'" target="_blank" v-if="!round.psofia_recordid">NEW</a>
+            </td>
+					</tr>
+				</tbody>
+      </table> <!-- END Tertiary table South settle/filter -->
+
+      <button id="download-csv" v-on:click="exportTableToCSV('daily_chlorine_residual_report.csv')">Download Excel File</button>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.0"></script>
+    <script src="../components/update.js"></script>
+  </body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Flow Calculator</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <script src="./helper.js"></script>
+    <style media="screen">
+      table input {
+        max-width: 100px;
+      }
+      table td {
+        text-align: center;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="app" class="container-fluid">
+      <h3 class="text-center">Flow Calculator</h3>
+      <table class="table table-bordered table-sm table-responsive">
+        <thead>
+					<tr>
+						<th rowspan="3" colspan="2" class="text-center">Flow</th>
+						<th colspan="1">Cl2 mg/l</th>
+						<th colspan="1">NH3 Ratio</th>
+						<th colspan="1">North Lime</th>
+            <th colspan="1">South Lime</th>
+            <th colspan="1">Ferric</th>
+            <th colspan="1">Poly 1</th>
+            <th colspan="1">Poly 2</th>
+            <th colspan="1">Carbon</th>
+            <th colspan="1"></th>
+					</tr>
+					<tr >
+						<th>lbs/day</th>
+						<th>lbs/day</th>
+						<th>mg/l</th>
+						<th>mg/l</th>
+            <th>mls/min</th>
+						<th>stroke/min</th>
+						<th>stroke/min</th>
+						<th>% feed rate</th>
+            <th></th>
+					</tr>
+          <tr class="bg-warning">
+						<th class="col-sm-1"><input type="number" v-model="calculatedData.cl2" v-on:change="calculate('cl2', calculatedData.cl2)"></th>
+						<th class="col-sm-1"><input type="number" v-model="calculatedData.nh3" v-on:change="calculate('nh3', calculatedData.nh3)"></th>
+						<th class="col-sm-1"><input type="number" v-model="calculatedData.north_lime" v-on:change="calculate('north_lime', calculatedData.north_lime)"></th>
+						<th class="col-sm-1"><input type="number" v-model="calculatedData.south_lime" v-on:change="calculate('south_lime', calculatedData.south_lime)"></th>
+            <th class="col-sm-1"><input type="number" v-model="calculatedData.ferric" v-on:change="calculate('ferric', calculatedData.ferric)"></th>
+						<th class="col-sm-1"><input type="number" v-model="calculatedData.poly1" v-on:change="calculate('poly1', calculatedData.poly1)"></th>
+						<th class="col-sm-1"><input type="number" v-model="calculatedData.poly2" v-on:change="calculate('poly2', calculatedData.poly2)"></th>
+						<th class="col-sm-1"><input type="number" v-model="calculatedData.carbon" v-on:change="calculate('carbon', calculatedData.carbon)"></th>
+            <th></th>
+          </tr>
+				</thead>
+				<tbody>
+					<tr> <!-- Row 1 -->
+						<th class="col-sm-1">North</th>
+            <td class="col-sm-1 bg-warning"><input type="number" v-model="calculatedData.flow_north" v-on:change="calculate('flow_north', calculatedData.flow_north)"></td>
+						<td>{{ calculatedData.Cl2_north }}</td>
+						<td>{{ calculatedData.NH3_north }}</td>
+						<td>{{ calculatedData.Lime_north }}</td>
+						<td></td>
+            <td>{{ calculatedData.ferric_north }}</td>
+						<td>{{ calculatedData.Poly_north }}</td>
+						<td></td>
+						<td>{{ calculatedData.Carbon_025 }}</td>
+            <th>0.25:1</th>
+					</tr>
+          <tr><!-- Row 2 -->
+						<th >South</th>
+            <td class="col-sm-1 bg-warning"><input type="number" v-model="calculatedData.flow_south" v-on:change="calculate('flow_south', calculatedData.flow_south)"></td>
+						<td>{{ calculatedData.Cl2_south }}</td>
+						<td>{{ calculatedData.NH3_south }}</td>
+						<td></td>
+						<td>{{ calculatedData.Lime_south }}</td>
+            <td>{{ calculatedData.ferric_south }}</td>
+						<td></td>
+						<td>{{ calculatedData.Poly_south }}</td>
+						<td>{{ calculatedData.Carbon_050 }}</td>
+            <th>0.50:1</th>
+					</tr>
+          <tr class="bg-info"> <!-- Row 3 -->
+						<th >Total</th>
+            <td class="col-sm-1"><input type="number" v-model="calculatedData.Flow_Total" v-on:change="calculate('Flow_Total', calculatedData.Flow_Total)"></td>
+						<td >{{ calculatedData.Cl2_total }}</td>
+						<td >{{ calculatedData.NH3_total }}</td>
+						<td >{{ calculatedData.Lime_north_total }}</td>
+						<td >{{ calculatedData.Lime_south_total }}</td>
+            <td >{{ calculatedData.ferric_total }}</td>
+						<td colspan="2" class="text-center">{{ calculatedData.Poly_total }}</td>
+
+						<td >{{ calculatedData.Carbon_075 }}</td>
+            <th>0.75:1</th>
+					</tr>
+          <tr><!-- Row 4 -->
+						<th>Post</th>
+            <td class="col-sm-1 bg-warning"><input type="number" v-model="calculatedData.flow_post" v-on:change="calculate('flow_post', calculatedData.flow_post)"></td>
+						<td>{{ calculatedData.Cl2_post }}</td>
+						<td></td>
+						<td></td>
+						<td></td>
+            <td></td>
+						<td></td>
+						<td></td>
+						<td>{{ calculatedData.Carbon_100 }}</td>
+            <th>1:1</th>
+					</tr>
+          <tr><!-- Row 5 -->
+						<td ></td>
+            <td></td>
+						<td></td>
+						<td></td>
+						<th>lbs/1hr</th>
+						<th>lbs/1hr</th>
+            <th>ml/2hr</th>
+						<th>lbs/2hr</th>
+						<th>lbs/2hr</th>
+						<th>lbs/1hr</th>
+            <td></td>
+					</tr>
+          <tr><!-- Row 6 -->
+						<td ></td>
+            <td></td>
+						<td></td>
+						<td></td>
+						<td>{{ calculatedData.Lime_north_lbs_1hr }}</td>
+						<td>{{ calculatedData.Lime_south_lbs_1hr }}</td>
+            <td>{{ calculatedData.ferric_ml_2hr_total }}</td>
+						<td>{{ calculatedData.Poly_north_lbs_2hr }}</td>
+						<td>{{ calculatedData.Poly_south_lbs_2hr }}</td>
+						<td>{{ calculatedData.Carbon_lbs_1hr }}</td>
+            <th></th>
+					</tr>
+          <tr><!-- Row 6 -->
+						<td ></td>
+            <td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+            <td></td>
+						<td colspan="2" class="text-center">{{ calculatedData.Poly_total_lbs_2hr }}</td>
+
+						<td>{{ calculatedData.Carbon_bags }}</td>
+            <th>Bags</th>
+					</tr>
+				</tbody>
+      </table>
+      <div class="text-center">
+        <button class="btn btn-primary btn-xs editBtn" v-on:click="upload($event)">SAVE</button>
+      </div>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.0"></script>
+  </body>
+</html>

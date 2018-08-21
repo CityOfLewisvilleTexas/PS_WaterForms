@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>WTP-069 Clearwells</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1375px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      .highlight {
+        background-color: yellow !important;
+      }
+      
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <h4 class="text-center">WTP-069 Clearwells - {{ months[parseInt(month) - 1] + ', ' + year }}</h4>
+      
+      <table class="table table-bordered table-condensed">
+        <thead>
+          <tr>
+            <th rowspan="2">Date</th>
+            <th rowspan="2">Time</th>
+            <th colspan="4">Clearwell #1</th>
+            <th colspan="4">Clearwell #2</th>
+            <th colspan="4">Clearwell #3</th>
+            <th colspan="4">Clearwell #4</th>
+            <th rowspan="2">Initials</th>
+            <th rowspan="2" class="editBtn"></th>
+          </tr>
+          <tr>
+            <th>Free</th>
+            <th>Mono</th>
+            <th>DI</th>
+            <th>Total</th>
+            <th>Free</th>
+            <th>Mono</th>
+            <th>DI</th>
+            <th>Total</th>
+            <th>Free</th>
+            <th>Mono</th>
+            <th>DI</th>
+            <th>Total</th>
+            <th>Free</th>
+            <th>Mono</th>
+            <th>DI</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(day, index) in data" v-if="day.PSOFIA_RecordNumber">
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.day.get('month') + 1 + '/' + day.day.get('date') }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day._Time }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw1_free }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw1_mono }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw1_di }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ total(index, 'cw1') }}</td>
+            
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw2_free }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw2_mono }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw2_di }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ total(index, 'cw2') }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw3_free }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw3_mono }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw3_di }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ total(index, 'cw3') }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw4_free }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw4_mono }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.cw4_di }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ total(index, 'cw4') }}</td>
+            <td :class="{ highlight: (day.day.get('date') === today.get('date')) }">{{ day.operator }}</td>
+            <td class="editBtn" :class="{ highlight: (day.day.get('date') === today.get('date')) }">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=72&record=' + day.PSOFIA_RecordNumber + '#96'" target="_blank" v-if="day.PSOFIA_RecordNumber">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=72'" target="_blank" v-if="!day.PSOFIA_RecordNumber">NEW</a>
+            </td>
+          </tr>
+          <tr class="editBtn" v-if="!day.PSOFIA_RecordNumber">
+            <td></td>
+            <td colspan="18"></td>
+            <td><a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=72'" target="_blank" v-if="!day.PSOFIA_RecordNumber">NEW</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.0"></script>
+  </body>
+</html>

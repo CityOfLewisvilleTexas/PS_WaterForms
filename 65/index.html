@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Daily Pump Changes</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <h4 class="text-center">{{ date }} Pump Changes</h4>
+      <table class="table table-bordered table-condensed table-striped">
+        <thead>
+          <tr>
+            <th rowspan="2">Date</th>
+            <th rowspan="2">Time</th>
+            <th rowspan="2">Operator</th>
+            <th rowspan="2">Pump Station</th>
+            <th colspan="2">Pump Change</th>
+            <th rowspan="2">Pump #</th>
+            <th rowspan="2">Comments</th>
+            <th rowspan="2" class="editBtn"></th>
+          </tr>
+          <tr>
+            <th>Status</th>
+            <th>Set Point</th>
+          </tr>
+        </thead>
+        <tbody v-if="!loading">
+          <tr v-for="row in data" v-if="data.length > 0">
+            <td>{{ date }}</td>
+            <td>{{ row._time }}</td>
+            <td>{{ row.operator }}</td>
+            <td>{{ row.pump_station }}</td>
+            <td>{{ row.pump_change }}</td>
+            <td>{{ row.pump_change_percent }}</td>
+            <td>{{ row.pump_num }}</td>
+            <td>{{ row.comments }}</td>
+            <td class="editBtn">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=65&record=' + row.PSOFIA_RecordNumber + '#96'" target="_blank" v-if="row.PSOFIA_RecordNumber">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=65'" target="_blank" v-if="!row.PSOFIA_RecordNumber">NEW</a>
+            </td>
+          </tr>
+          <tr v-if="data.length === 0">
+            <td colspan="8">No records for this date.</td>
+            <td class="editBtn">
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/default.aspx?form=65'" target="_blank">NEW</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js"></script>
+  </body>
+</html>

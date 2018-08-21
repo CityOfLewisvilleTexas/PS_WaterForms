@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Water Rounds Sheet View</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+		<!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<!-- Reference javascript library -->
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		<link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Compiled and minified CSS for materialize-->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/css/materialize.min.css"> -->
+
+    <!-- Compiled and minified JavaScript for materialize -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/js/materialize.min.js"></script> -->
+
+		<style type="text/css">
+  		html, body {
+  			height: 100%;
+  			width: 100%;
+  		}
+      table input {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-height: 25px !important;
+      }
+      td {
+        padding: 2 0 !important;
+      }
+  		table {
+  			border: 2px solid #333 !important;
+  		}
+  		thead tr:first-child th{
+  			border-bottom: 2px solid #333 !important;
+  		}
+  		th.thickL, td.thickL {
+  			border-left: 2px solid #333 !important;
+  		}
+  		th.thickR, td.thickR {
+  			border-right: 2px solid #333 !important;
+  		}
+  		th, td {
+  			text-align: center;
+  		}
+  		tbody tr {
+  			height: 31px !important;
+  		}
+			input {
+				border: none;
+				max-width: 4.1em;
+			}
+			#apa input {
+				max-width: 12em !important;
+			}
+
+			input[type="date"] {
+				max-width: 12em;
+			}
+
+			select {
+				border: none;
+			}
+
+			.main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+      }
+  		#checklist td {
+  			text-align: left !important;
+  			border-top-style: none !important;
+  			border-bottom-style: none !important;
+  		}
+  		#checklist td:first-child {
+  			border-right-style: none !important;
+  		}
+  		#checklist td:last-child {
+  			border-left-style: none !important;
+  		}
+      /*#input-field {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+      }*/
+      /*td {
+        padding: 0;
+        margin: 0;
+      }*/
+
+  		@media print {
+  			html, body{
+
+  			}
+  			h5 {
+  				margin-bottom: 0px !important;
+  			}
+  			h3 {
+  				margin-top: 0px !important;
+  			}
+  			tr.headerRow2 th {
+  				font-size: .8em !important;
+  			}
+  			tr.headerRow3 th {
+  				font-size: .6em !important;
+  			}
+  			td, th {
+  				padding: 2px !important;
+  			}
+  			td {
+  				font-size: .75em !important;
+  			}
+  			tbody tr {
+  				height: 20px !important;
+  			}
+  			#checklist td {
+  				text-align: left;
+  				border-top-style: none !important;
+  				border-bottom-style: none !important;
+  			}
+  			#checklist td:first-child {
+  				border-right-style: none !important;
+  			}
+  			#checklist td:last-child {
+  				border-left-style: none !important;
+  			}
+				input {
+					max-width: 3em;
+				}
+				#apa input {
+					max-width: 3em;
+				}
+				.main-card {
+					border-radius: 2px;
+	        margin: 0 auto;
+	        margin-bottom: 0px;
+	        border: none;
+	        box-shadow: none;
+	        padding: 0px;
+	        max-width: 100%;
+	        width: 100%;
+	        height: 100%;
+				}
+  		}
+
+		</style>
+	</head>
+	<body>
+		<div id="app" class="container-fluid">
+			<div class="card main-card">
+				<h5>Date: <input type="date"></h5>
+				<h5>
+	        <span id="rShift">
+	          Shift:
+	          <select v-model="shift" class="browser-default" v-on:change="setShiftData">
+	            <option v-for="shift in shifts">
+	              {{ shift }}
+	            </option>
+	          </select>
+	        </span>
+	      </h5>
+
+				<h3 class="text-center">Rounds Sheet</h3>
+
+				<table id="chlorine_ammonia" class="table table-bordered table-condensed">
+					<thead>
+						<tr>
+							<th colspan="10" class="thickL thickR">CHLORINE</th>
+							<th colspan="6" class="thickL thickR">AMMONIA</th>
+						</tr>
+						<tr class="headerRow2">
+							<th colspan="1" class="thickL">Flow</th>
+							<th colspan="3">Container/Weight</th>
+							<th colspan="2">Chlor #1</th>
+							<th colspan="2">Chlor #2</th>
+							<th colspan="2" class="thickR">Chlor #3</th>
+							<th colspan="2" class="thickL">#1</th>
+							<th colspan="2">#2</th>
+							<th colspan="2" class="thickR">#3</th>
+						</tr>
+						<tr class="headerRow3">
+							<th class="thickL">MGD</th>
+							<th>1</th>
+							<th>2</th>
+							<th>3</th>
+							<th>Vac</th>
+							<th>lbs/day</th>
+							<th>Vac</th>
+							<th>lbs/day</th>
+							<th>Vac</th>
+							<th class="thickR">lbs/day</th>
+							<th class="thickL">PSI</th>
+							<th>lbs/day</th>
+							<th>PSI</th>
+							<th>lbs/day</th>
+							<th>PSI</th>
+							<th class="thickR">lbs/day</th>
+						</tr>
+					</thead>
+					<tbody>
+	          <tr is="chlorine-row" v-for="(round, index) in shiftRounds" v-bind:round="round" v-bind:index="index">
+					</tbody>
+				</table>
+
+				<table id="ferric_lime_poly" class="table table-bordered table-condensed">
+					<thead>
+						<tr>
+							<th colspan="7" class="thickL thickR">FERRIC</th>
+							<th colspan="4" class="thickL thickR">LIME</th>
+							<th colspan="5" class="thickL thickR">POLY</th>
+						</tr>
+						<tr class="headerRow2">
+							<th class="thickL"></th>
+							<th colspan="2">#1 Pump</th>
+							<th colspan="2">#2 Pump</th>
+							<th colspan="2" class="thickR">#3 Pump</th>
+							<th colspan="2" class="thickL">#1 North</th>
+							<th colspan="2" class="thickR">#2 South</th>
+							<th colspan="2" class="thickL">#1 Pump</th>
+							<th colspan="2">#2 Pump</th>
+							<th class="thickR">Drum Weight</th>
+						</tr>
+						<tr class="headerRow3">
+							<th class="thickL">Time</th>
+							<th>ml/min</th>
+							<th>Set Pt.</th>
+							<th>ml/min</th>
+							<th>Set Pt.</th>
+							<th>ml/min</th>
+							<th class="thickR">Set Pt.</th>
+							<th class="thickL">Set Pt.</th>
+							<th>lbs/2 hr</th>
+							<th>Set Pt.</th>
+							<th class="thickR">lbs/2 hr</th>
+							<th class="thickL">Set Pt.</th>
+							<th>Stk/Min</th>
+							<th>Set Pt.</th>
+							<th>Stk/Min</th>
+							<th class="thickR">lbs.</th>
+						</tr>
+					</thead>
+					<tbody>
+	          <tr is="ferric-lime-poly-row" v-for="(round, index) in shiftRounds" v-bind:round="round" v-bind:index="index">
+					</tbody>
+				</table>
+
+				<table id="hsp_ammonia" class="table table-bordered table-condensed">
+					<thead>
+						<tr>
+							<th colspan="8" class="thickL thickR">HIGH SERVICE PUMP</th>
+							<th colspan="6" class="thickL thickR">AMMONIA</th>
+						</tr>
+						<tr class="headerRow2">
+							<th colspan="8" class="thickL thickR"></th>
+							<th colspan="3" class="thickL">Tank #1</th>
+							<th colspan="3" class="thickR">Tank #2</th>
+						</tr>
+						<tr class="headerRow3">
+							<th class="thickL">Time</th>
+							<th>Temp</th>
+							<th>Pumps</th>
+							<th>Volts</th>
+							<th>Amps</th>
+							<th>Phase 1</th>
+							<th>Phase 2</th>
+							<th class="thickR">Phase 3</th>
+							<th class="thickL">Tank PSI</th>
+							<th>Reg PSI</th>
+							<th>% Level</th>
+							<th>Tank PSI</th>
+							<th>Reg PSI</th>
+							<th class="thickR">% Level</th>
+						</tr>
+					</thead>
+					<tbody>
+	          <tr is="hsp-ammonia-row" v-for="(round, index) in shiftRounds" v-bind:round="round" v-bind:index="index">
+					<tbody>
+				</table>
+
+				<table class="table table-bordered table-condensed">
+					<thead>
+						<tr>
+							<th colspan="14" class="thickL thickR">NORTHSIDE PUMP STATION (NSPS)</th>
+						</tr>
+						<tr class="headerRow2">
+							<th class="thickL">Pumps</th>
+							<th>Volts</th>
+							<th>Amps</th>
+							<th>Phase A</th>
+							<th>Phase B</th>
+							<th>Phase C</th>
+							<th>Flow</th>
+							<th>PSI</th>
+							<th>NTU</th>
+							<th>CI2</th>
+							<th>#6</th>
+							<th>#7</th>
+							<th>#8</th>
+							<th class="thickR">#9</th>
+						</tr>
+					</thead>
+					<tbody>
+	          <tr is="nsps-row" v-for="(round, index) in shiftRounds" v-bind:round="round" v-bind:index="index">
+					</tbody>
+				</table>
+
+				<table id="apa" class="table table-bordered table-condensed">
+					<thead>
+						<tr>
+							<th colspan="6" class="thickL thickR">APA</th>
+						</tr>
+						<tr class="headerRow2">
+							<th class="thickL">Time</th>
+							<th>Sample 1</th>
+							<th>Sample 2</th>
+							<th>Time</th>
+							<th>Sample 1</th>
+							<th class="thickR">Sample 2</th>
+						</tr>
+					</thead>
+					<tbody>
+	          <tr is="apa-row" v-for="(round, index) in shiftRounds" v-bind:round="round" v-bind:index="index">
+					</tbody>
+				</table>
+
+				<table id="checklist" class="table table-bordered table-condensed">
+					<thead>
+						<tr>
+							<th colspan="2">ROUNDS CHECK LIST</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td class="Check_OilLvls"><input type="checkbox"> Oil Levels: NSPS/HSP</td>
+							<td class="Check_RawWAPAF"><input type="checkbox"> Raw Water APA Filters</td>
+						</tr>
+						<tr>
+							<td class="Check_GAWV"><input type="checkbox"> GA Water Valves</td>
+							<td class="Check_Doors"><input type="checkbox"> All Doors locked/alarmed</td>
+						</tr>
+						<tr>
+							<td class="Check_BulkNH3L"><input type="checkbox"> Bulk NH3 Leaks</td>
+							<td class="Check_ReclaimLvls"><input type="checkbox"> Reclaim Level (Leaks pump) (Noise)</td>
+						</tr>
+						<tr>
+							<td class="Check_NSPSP"><input type="checkbox"> NSPS Piping (Oil Levels on Motors) (Leaks on Pumps)</td>
+							<td class="Check_ChemLvls"><input type="checkbox"> Chemical Levels</td>
+						</tr>
+						<tr>
+							<td class="Check_DieselT"><input type="checkbox"> Diesel Tank</td>
+							<td class="Check_SmellT"><input type="checkbox"> Smell/Temperature</td>
+						</tr>
+						<tr>
+							<td class="Check_FenceSec"><input type="checkbox"> Fence Security (Gates)</td>
+							<td class="Check_3Gen"><input type="checkbox"> Check All 3 Generators</td>
+						</tr>
+						<tr>
+							<td class="Check_RawNSPSV"><input type="checkbox"> Raw/NSPS Vaults</td>
+							<td class="Check_ERCR"><input type="checkbox"> Electrical Room/Chemical Room</td>
+						</tr>
+						<tr>
+							<td class="Check_BoostP"><input type="checkbox"> Booster Pump (Noise) (Leaks)</td>
+							<td class="Check_FlocM"><input type="checkbox"> Floc Motors</td>
+						</tr>
+						<tr>
+							<td class="Check_FilterGL"><input type="checkbox"> Filter Gallery Leaks (Sounds) (Turbidimeters) (APA) (Filters)</td>
+							<td class="Check_ClarR"><input type="checkbox"> Clarifier Rakes</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+    <script src="./main.js"></script>
+		<script src="./initializers.js"></script>
+	</body>
+</html>

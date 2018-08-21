@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Control Panel Worksheet</title>
+    <!-- force no compatibility mode in IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta charset="utf-8" />
+    <!-- Vue -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <!-- JQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <!-- google icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Product+Sans:400,400i,700,700i' rel='stylesheet' type='text/css'>
+    <!-- style -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+		<script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+    <link rel="stylesheet" type="text/css" media="print" href="print.css" />
+    <!-- mobile friendly -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+  <div id="bigHolder">
+    <div id="toolbar" class="no-print">
+      <div style="display: inline-block;" id="toolbar-title">
+        Dallas Water Meter Report&nbsp;&nbsp;&nbsp;
+      </div>
+      <form style="display: inline-block;">
+        <label class="">From:</label>   
+        <select id="sDaySelect" v-model="sdSelect">
+          <option class="opts" v-for="day in sDayOptions" :value="day.index" :selected="day.selected">{{ day.day }}</option>
+        </select>    
+        <select id="sMonthSelect" v-model="smSelect" v-on:change="populateDaysSelect('start')">
+          <option class="opts" v-for="month in months" :value="month.index" :selected="month.selected">{{ month.name }}</option>
+        </select>    
+        <select id="sYearSelect" v-model="sySelect">
+          <option class="opts" v-for="year in years" :value="year.index" :selected="year.selected">{{ year.year }}</option>
+        </select>
+        &nbsp;&nbsp;&nbsp;
+
+        <label class="">To:</label>   
+        <select id="eDaySelect" v-model="edSelect">
+          <option class="opts" v-for="day in eDayOptions" :value="day.index" :selected="day.selected">{{ day.day }}</option>
+        </select>    
+        <select id="eMonthSelect" v-model="emSelect" v-on:change="populateDaysSelect('end')">
+          <option class="opts" v-for="month in months" :value="month.index" :selected="month.selected">{{ month.name }}</option>
+        </select>    
+        <select id="eYearSelect" v-model="eySelect">
+          <option class="opts" v-for="year in years" :value="year.index" :selected="year.selected">{{ year.year }}</option>
+        </select>
+
+      </form>
+      <button id="fab3" style="display: inline-block;" v-on:click="search"><i class="material-icons">search</i></button>
+      <button id="fab2"><i class="material-icons">keyboard_arrow_up</i></button>
+    </div>
+    <div id="holder" class="active">
+      <div id="error" v-bind:class="{ active: error }" class="no-print">No records found for this month.</div>
+      <div id="loader" v-bind:class="{ active: isLoading }" class="no-print"></div>
+      <div id="card" class="card" v-bind:class="{ active: isLoaded }">
+
+        <h4 class="text-center">MEMORANDUM</h4>
+        <br>
+        <table>
+          <tbody>
+            <tr>
+              <th>TO:</th>
+              <td class="td-tab">Keith Marvin PE, Director, Public Services</td>
+            </tr>
+            <tr>
+              <th>VIA:</th>
+              <td class="td-tab">Karen Emadiazar, Manager, Utilities</td>
+            </tr>
+            <tr>
+              <th>FROM:</th>
+              <td class="td-tab">Glenn Barker Jr., Water Production Superintendent</td>
+            </tr>
+            <tr>
+              <th>DATE:</th>
+              <td class="td-tab">{{ today.toLocaleDateString() }}</td>
+            </tr>
+            <tr></tr>
+            <tr>
+              <th>SUBJECT:</th>
+              <td class="td-tab"><strong>DALLAS WATER METER REPORT</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        <br>
+        
+        <p>
+          Daily readings were taken from the raw water meter located in the raw water meter vault at the Water Treatment Plant and treated water meters located at 2300 S. Valley Parkway, 2891 Lake Ridge Road, and 2946 Lake Vista Drive, Lewisville, Texas.  These readings have been assembled below to report to the Dallas Water Utilities.
+        </p>
+        
+        <p><strong><u>RAW WATER – Dallas Meter #800083 (Sparling)</u></strong></p>
+        
+        <table class="wide">
+          <tbody>
+            <tr>
+              <td>{{ startDate }}</td>
+              <td class="text-right">{{ raw_vault_end.toLocaleString() }}</td>
+            </tr>
+            <tr>
+              <td>{{ endDate }}</td>
+              <td class="text-right"><u>- {{ raw_vault_start.toLocaleString() }}</u></td>
+            </tr>
+            <tr>
+              <td>Total</td>
+              <td class="text-right">{{ diff(raw_vault_end, raw_vault_start).toLocaleString() }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <br>
+        
+        <p><strong>TOTAL RAW WATER</strong> for the past <u>{{ dayDiff }}</u> days.</p>
+        
+        <br>
+        
+        <p><strong><u>TREATED WATER METER - Dallas Meter #800073</u></strong></p>
+        
+        <table class="wide">
+          <tbody>
+            <tr>
+              <td>{{ startDate }}</td>
+              <td class="text-right">140,805,000</td>
+            </tr>
+            <tr>
+              <td>{{ endDate }}</td>
+              <td class="text-right"><u>- 140,805,000</u></td>
+            </tr>
+            <tr>
+              <td>Total</td>
+              <td class="text-right">0</td>
+            </tr>
+          </tbody>
+        </table>
+        <br>
+        
+        <p><strong><u>EASTSIDE PUMP STATION TREATED</u></strong>(Lewisville Bristol Recorder No. 92A01760)</p>
+        
+        <table class="wide">
+          <tbody>
+            <tr>
+              <td>{{ startDate }}</td>
+              <td class="text-right">{{ esps_end.toLocaleString() }}</td>
+            </tr>
+            <tr>
+              <td>{{ endDate }}</td>
+              <td class="text-right"><u>- {{ esps_start.toLocaleString() }}</u></td>
+            </tr>
+            <tr>
+              <td>Total</td>
+              <td class="text-right">{{ diff(esps_end, esps_start).toLocaleString() }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <br>
+        
+        <p><strong><u>EASTSIDE BOOSTER STATION TREATED</u></strong></p>
+        
+        <table class="wide">
+          <tbody>
+            <tr>
+              <td>{{ startDate }}</td>
+              <td class="text-right">{{ esbs_end.toLocaleString() }}</td>
+            </tr>
+            <tr>
+              <td>{{ endDate }}</td>
+              <td class="text-right"><u>- {{ esbs_start.toLocaleString() }}</u></td>
+            </tr>
+            <tr>
+              <td>Total</td>
+              <td class="text-right">{{ diff(esbs_end, esbs_start).toLocaleString() }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <br>
+        
+        <p><strong><u>MIDWAY PUMP STATION TREATED Lewisville meter</u></strong></p>
+        
+        <table class="wide">
+          <tbody>
+            <tr>
+              <td>{{ startDate }}</td>
+              <td class="text-right">{{ mwps_end.toLocaleString() }}</td>
+            </tr>
+            <tr>
+              <td>{{ endDate }}</td>
+              <td class="text-right"><u>- {{ mwps_start.toLocaleString() }}</u></td>
+            </tr>
+            <tr>
+              <td>Total</td>
+              <td class="text-right">{{ diff(mwps_end, mwps_start).toLocaleString() }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <br>
+        
+        <p><strong><u>SOUTHSIDE PUMP STATION TREATED</u></strong></p>
+        
+        <table class="wide">
+          <tbody>
+            <tr>
+              <td>{{ startDate }}</td>
+              <td class="text-right">{{ ssps_end.toLocaleString() }}</td>
+            </tr>
+            <tr>
+              <td>{{ endDate }}</td>
+              <td class="text-right"><u>- {{ ssps_start.toLocaleString() }}</u></td>
+            </tr>
+            <tr>
+              <td>Total</td>
+              <td class="text-right">{{ diff(ssps_end, ssps_start).toLocaleString() }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <br>
+        <br>
+        
+        <table>
+          <tr>
+            <th>Raw Water Average:&nbsp;&nbsp;&nbsp;</th>
+            <td><u>{{ (raw_vault_bin / 1000000).toFixed(3) }}</u> MGD</td>
+          </tr>
+          <tr>
+            <th>Eastside Pump Station Average:&nbsp;&nbsp;&nbsp;</th>
+            <td><u>{{ (esps_bin / 1000000).toFixed(3) }}</u> MGD</td>
+          </tr>
+          <tr>
+            <th>Eastside Booster Station Average:&nbsp;&nbsp;&nbsp;</th>
+            <td><u>{{ (esbs_bin / 1000000).toFixed(3) }}</u> MGD</td>
+          </tr>
+          <tr>
+            <th>Midway Pump Station Average:&nbsp;&nbsp;&nbsp;</th>
+            <td><u>{{ (mwps_bin / 1000000).toFixed(3) }}</u> MGD</td>
+          </tr>
+          <tr>
+            <th>Southside Pump Station Average:&nbsp;&nbsp;&nbsp;</th>
+            <td><u>{{ (ssps_bin / 1000000).toFixed(3) }}</u> MGD</td>
+          </tr>          
+        </table>
+      </div>
+    </div>
+    <button id="fab" v-on:click="window.print()"><i class="material-icons">print</i></button>
+  </div>
+  <!-- source code -->
+  <script type="text/javascript" src="app.js?7"></script>
+</body>

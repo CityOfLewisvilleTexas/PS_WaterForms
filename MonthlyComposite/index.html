@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Monthly Composite Report</title>
+    <!-- Reference jquery library -->
+		<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="../JS/psofia.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">-->
+    
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+    <!--  Data tables  -->
+    <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></link>
+    
+    <style>
+      .inline {
+        display: inline;
+      }
+      
+      .left {
+        display: inline;
+        float: left;
+        margin-left: 3em;
+        margin-top: 1.3em;
+      }
+      
+      /* Scrollable table body
+      .table-fixed tbody {
+          display:block;
+          width:100%;
+          height:700px;
+          overflow:auto;
+      }
+      .table-fixed thead, tbody tr {
+          display:table;
+          width:100%;
+          table-layout:fixed;
+      }
+      ::-webkit-scrollbar { 
+          display: none; 
+      }
+      */
+      
+      table {
+        margin: 0 !important;
+      }
+      
+      tbody {
+        font-size: 0.9em;
+      }
+      thead {
+        font-size: 1.0em;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+    </style>
+    
+  </head>
+  <body>
+    <div class="container-fluid" id="app">
+      <div class="inline">
+        <div v-if="!loading" class="left">
+          <a href="#" class="btn btn-xs btn-info" v-if="record === ''" v-on:click="upload">SAVE</a>
+          <a href="#" class="btn btn-xs btn-info" v-if="record !== '' && needsUpdate" v-on:click="update">UPDATE</a>
+        </div>
+        <h3 class="text-center">{{ months[parseInt(monthParam) - 1] }} Monthly Composite Report</h3>
+      </div>
+      
+      <ul class="nav nav-tabs">
+				<li :class="(currentTab == 'Monthly1') ? 'active': '' "><a href="#" v-on:click="changeTab('Monthly1')">Page 1</a></li>
+				<li :class="(currentTab == 'Monthly2') ? 'active': '' "><a href="#" v-on:click="changeTab('Monthly2')">Page 2</a></li>
+			</ul>
+      <div class="tab-content" id="display">
+        <div id="Monthly1" class="tab-pane fade" v-bind:class="{'active': currentTab == 'Monthly1', 'in': currentTab == 'Monthly1' }" v-show="currentTab == 'Monthly1'">
+          <div class="spinner" v-if="loading"></div>
+          <table id="display1" class="table table-bordered table-striped display" cellspacing="0" width="100%" v-if="data.length != 0" >
+            <thead>
+              <tr>
+                <th rowspan="3">Date</th>
+                <th colspan="11">Raw Data</th>
+                <th colspan="8">Meter Reading Totals</th>
+                <th colspan="18">Chemicals Used</th>
+              </tr>
+              <tr>
+                <th colspan="2">Temp</th>
+                <th colspan="9">Pump Hours (Old Intake/UTI)</th>
+                <th rowspan="2">Lake Elev.</th>
+                <th rowspan="2">Finish Water</th>
+                <th rowspan="2">Vault Raw</th>
+                <th rowspan="2">N Raw Badger</th>
+                <th rowspan="2">S Raw Badger</th>
+                <th rowspan="2">Total Reclaim</th>
+                <th rowspan="2">Nat Gas</th>
+                <th rowspan="2">Kilowatt</th>
+                <th colspan="2">Ferric</th>
+                <th colspan="2">Lime</th>
+                <th colspan="2">Chorine</th>
+                <th colspan="2">Ammonia</th>
+                <th colspan="2">Fluoride</th>
+                <th colspan="2">Carbon</th>
+                <th colspan="2">Polymer</th>
+                <th colspan="2">Caustic</th>
+                <th>Bleach</th>
+                <th>LAS</th>
+              </tr>
+              <tr>
+                <th>F</th>
+                <th>C</th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+                <th>6</th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>lbs</th>
+                <th>mg</th>
+                <th>lbs</th>
+                <th>mg</th>
+                <th>lbs</th>
+                <th>mg</th>
+                <th>lbs</th>
+                <th>mg</th>
+                <th>lbs</th>
+                <th>mg</th>
+                <th>lbs</th>
+                <th>mg</th>
+                <th>lbs</th>
+                <th>mg</th>
+                <th>lbs</th>
+                <th>mg</th>
+                <th>lbs</th>
+                <th>lbs</th>
+              </tr>
+            </thead>
+            <tbody class="content">
+              <tr v-for="(date, index) in data">
+                <td>{{ formatDate(date.date) }}</td>
+                <td>{{ (date.Raw_Temp * 9 / 5 + 32).toFixed(1) || "" }}</td>
+                <td>{{ decimalPlaces("Raw_Temp", index, 1) }}</td>
+                <td>{{ pushOnToCalculated('int_1', index) }}</td>
+                <td>{{ pushOnToCalculated('int_2', index) }}</td>
+                <td>{{ pushOnToCalculated('int_3', index) }}</td>
+                <td>{{ pushOnToCalculated('int_4', index) }}</td>
+                <td>{{ pushOnToCalculated('int_5', index) }}</td>
+                <td>{{ pushOnToCalculated('int_6', index) }}</td>
+                <td>{{ pushOnToCalculated('uti_1', index) }}</td>
+                <td>{{ pushOnToCalculated('uti_2', index) }}</td>
+                <td>{{ pushOnToCalculated('uti_3', index) }}</td>
+                <td>{{ pushOnToCalculated('level', index) }}</td>
+                <td>{{ combinedTotal("finished", "ns_vault", index, 'thousandths') }}</td>
+                <td>{{ combinedTotal("raw_vault", null, index, 'thousandths') }}</td>
+                <td>{{ combinedTotal("north_raw", null, index, 'hundredths') }}</td>
+                <td>{{ combinedTotal("s_raw", null, index, 'hundredths') }}</td>
+                <td>{{ combinedTotal("reclaim", null, index, 'hundredths') }}</td>
+                <td>{{ combinedTotal("gas", null, index, 'thousandths') }}</td>
+                <td>{{ combinedTotal("plant_electrical", "nsps_electrical", index) }}</td>
+                <td>{{ calculateChem('ferric', index) }}</td>
+                <td>{{ calculateMg('ferric', index) }}</td>
+                <td>{{ calculateChem('lime', index) }}</td>
+                <td>{{ calculateMg('lime', index) }}</td>
+                <td>{{ calculateChem('chlorine', index) }}</td>
+                <td>{{ calculateMg('chlorine', index) }}</td>
+                <td>{{ calculateChem('ammonia', index) }}</td>
+                <td>{{ calculateMg('ammonia', index) }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ calculateChem('carbon', index) }}</td>
+                <td>{{ calculateMg('carbon', index) }}</td>
+                <td>{{ calculateChem('polymer', index) }}</td>
+                <td>{{ calculateMg('polymer', index) }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ calculateBleach(index) }}</td>
+                <td>{{ calculateLas(index) }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="bg-danger"> <!--  Total -->
+                <td>Total</td>
+                <td>{{ (columnCalc("Raw_Temp").total * 9 / 5 + 32).toFixed(1) }}</td>
+                <td>{{ columnCalc("Raw_Temp").total }}</td>
+                <td>{{ columnCalc("int_1").total }}</td>
+                <td>{{ columnCalc("int_2").total }}</td>
+                <td>{{ columnCalc("int_3").total }}</td>
+                <td>{{ columnCalc("int_4").total }}</td>
+                <td>{{ columnCalc("int_5").total }}</td>
+                <td>{{ columnCalc("int_6").total }}</td>
+                <td>{{ columnCalc("uti_1").total }}</td>
+                <td>{{ columnCalc("uti_2").total }}</td>
+                <td>{{ columnCalc("uti_3").total }}</td>
+                <td>{{ columnCalc("lake").total }}</td>
+                <td>{{ columnCalc("finished").total }}</td>
+                <td>{{ columnCalc("raw_vault").total }}</td>
+                <td>{{ columnCalc("north_raw").total }}</td>
+                <td>{{ columnCalc("s_raw").total }}</td>
+                <td>{{ columnCalc("reclaim").total }}</td>
+                <td>{{ columnCalc("gas").total }}</td>
+                <td>{{ columnCalc("plant_electrical").total }}</td>
+                <td>{{ columnCalc("ferric").total }}</td>
+                <td>{{ columnCalc("ferric_mg").total }}</td>
+                <td>{{ columnCalc("lime").total }}</td>
+                <td>{{ columnCalc("lime_mg").total }}</td>
+                <td>{{ columnCalc("chlorine").total }}</td>
+                <td>{{ columnCalc("chlorine_mg").total }}</td>
+                <td>{{ columnCalc("ammonia").total }}</td>
+                <td>{{ columnCalc("ammonia_mg").total }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ columnCalc("carbon").total }}</td>
+                <td>{{ columnCalc("carbon_mg").total }}</td>
+                <td>{{ columnCalc("polymer").total }}</td>
+                <td>{{ columnCalc("polymer_mg").total }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ columnCalc("bleachTotal").total }}</td>
+                <td>{{ columnCalc("lasTotal").total }}</td>
+              </tr>
+              <tr class="bg-success"> <!--  Max -->
+                <td>Max</td>
+                <td>{{ (columnCalc("Raw_Temp").max * 9 / 5 + 32).toFixed(1) }}</td>
+                <td>{{ columnCalc("Raw_Temp").max }}</td>
+                <td>{{ columnCalc("int_1").max }}</td>
+                <td>{{ columnCalc("int_2").max }}</td>
+                <td>{{ columnCalc("int_3").max }}</td>
+                <td>{{ columnCalc("int_4").max }}</td>
+                <td>{{ columnCalc("int_5").max }}</td>
+                <td>{{ columnCalc("int_6").max }}</td>
+                <td>{{ columnCalc("uti_1").max }}</td>
+                <td>{{ columnCalc("uti_2").max }}</td>
+                <td>{{ columnCalc("uti_3").max }}</td>
+                <td>{{ columnCalc("lake").max }}</td>
+                <td>{{ columnCalc("finished").max }}</td>
+                <td>{{ columnCalc("raw_vault").max }}</td>
+                <td>{{ columnCalc("north_raw").max }}</td>
+                <td>{{ columnCalc("s_raw").max }}</td>
+                <td>{{ columnCalc("reclaim").max }}</td>
+                <td>{{ columnCalc("gas").max }}</td>
+                <td>{{ columnCalc("plant_electrical").max }}</td>
+                <td>{{ columnCalc("ferric").max }}</td>
+                <td>{{ columnCalc("ferric_mg").max }}</td>
+                <td>{{ columnCalc("lime").max }}</td>
+                <td>{{ columnCalc("lime_mg").max }}</td>
+                <td>{{ columnCalc("chlorine").max }}</td>
+                <td>{{ columnCalc("chlorine_mg").max }}</td>
+                <td>{{ columnCalc("ammonia").max }}</td>
+                <td>{{ columnCalc("ammonia_mg").max }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ columnCalc("carbon").max }}</td>
+                <td>{{ columnCalc("carbon_mg").max }}</td>
+                <td>{{ columnCalc("polymer").max }}</td>
+                <td>{{ columnCalc("polymer_mg").max }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ columnCalc("bleachTotal").max }}</td>
+                <td>{{ columnCalc("lasTotal").max }}</td>
+              </tr>
+              <tr class="bg-warning"> <!--  Min -->
+                <td>Min</td>
+                <td>{{ (columnCalc("Raw_Temp").min * 9 / 5 + 32).toFixed(1) }}</td>
+                <td>{{ columnCalc("Raw_Temp").min }}</td>
+                <td>{{ columnCalc("int_1").min }}</td>
+                <td>{{ columnCalc("int_2").min }}</td>
+                <td>{{ columnCalc("int_3").min }}</td>
+                <td>{{ columnCalc("int_4").min }}</td>
+                <td>{{ columnCalc("int_5").min }}</td>
+                <td>{{ columnCalc("int_6").min }}</td>
+                <td>{{ columnCalc("uti_1").min }}</td>
+                <td>{{ columnCalc("uti_2").min }}</td>
+                <td>{{ columnCalc("uti_3").min }}</td>
+                <td>{{ columnCalc("lake").min }}</td>
+                <td>{{ columnCalc("finished").min }}</td>
+                <td>{{ columnCalc("raw_vault").min }}</td>
+                <td>{{ columnCalc("north_raw").min }}</td>
+                <td>{{ columnCalc("s_raw").min }}</td>
+                <td>{{ columnCalc("reclaim").min }}</td>
+                <td>{{ columnCalc("gas").min }}</td>
+                <td>{{ columnCalc("plant_electrical").min }}</td>
+                <td>{{ columnCalc("ferric").min }}</td>
+                <td>{{ columnCalc("ferric_mg").min }}</td>
+                <td>{{ columnCalc("lime").min }}</td>
+                <td>{{ columnCalc("lime_mg").min }}</td>
+                <td>{{ columnCalc("chlorine").min }}</td>
+                <td>{{ columnCalc("chlorine_mg").min }}</td>
+                <td>{{ columnCalc("ammonia").min }}</td>
+                <td>{{ columnCalc("ammonia_mg").min }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ columnCalc("carbon").min }}</td>
+                <td>{{ columnCalc("carbon_mg").min }}</td>
+                <td>{{ columnCalc("polymer").min }}</td>
+                <td>{{ columnCalc("polymer_mg").min }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ columnCalc("bleachTotal").min }}</td>
+                <td>{{ columnCalc("lasTotal").min }}</td>
+              </tr>
+              <tr class="bg-info"> <!-- Avg -->
+                <td>Avg</td>
+                <td>{{ (columnCalc("Raw_Temp").avg * 9 / 5 + 32).toFixed(1) }}</td>
+                <td>{{ columnCalc("Raw_Temp").avg }}</td>
+                <td>{{ columnCalc("int_1").avg }}</td>
+                <td>{{ columnCalc("int_2").avg }}</td>
+                <td>{{ columnCalc("int_3").avg }}</td>
+                <td>{{ columnCalc("int_4").avg }}</td>
+                <td>{{ columnCalc("int_5").avg }}</td>
+                <td>{{ columnCalc("int_6").avg }}</td>
+                <td>{{ columnCalc("uti_1").avg }}</td>
+                <td>{{ columnCalc("uti_2").avg }}</td>
+                <td>{{ columnCalc("uti_3").avg }}</td>
+                <td>{{ columnCalc("lake").avg }}</td>
+                <td>{{ columnCalc("finished").avg }}</td>
+                <td>{{ columnCalc("raw_vault").avg }}</td>
+                <td>{{ columnCalc("north_raw").avg }}</td>
+                <td>{{ columnCalc("s_raw").avg }}</td>
+                <td>{{ columnCalc("reclaim").avg }}</td>
+                <td>{{ columnCalc("gas").avg }}</td>
+                <td>{{ columnCalc("plant_electrical").avg }}</td>
+                <td>{{ columnCalc("ferric").avg }}</td>
+                <td>{{ columnCalc("ferric_mg").avg }}</td>
+                <td>{{ columnCalc("lime").avg }}</td>
+                <td>{{ columnCalc("lime_mg").avg }}</td>
+                <td>{{ columnCalc("chlorine").avg }}</td>
+                <td>{{ columnCalc("chlorine_mg").avg }}</td>
+                <td>{{ columnCalc("ammonia").avg }}</td>
+                <td>{{ columnCalc("ammonia_mg").avg }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ columnCalc("carbon").avg }}</td>
+                <td>{{ columnCalc("carbon_mg").avg }}</td>
+                <td>{{ columnCalc("polymer").avg }}</td>
+                <td>{{ columnCalc("polymer_mg").avg }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ columnCalc("bleachTotal").avg }}</td>
+                <td>{{ columnCalc("lasTotal").avg }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div id="Monthly2" class="tab-pane fade" v-bind:class="{'active': currentTab == 'Monthly2', 'in': currentTab == 'Monthly2' }" v-show="currentTab == 'Monthly2'">
+          <div class="spinner" v-if="loading"></div>
+          <table id="display2" class="table table-bordered table-striped display" cellspacing="0" width="100%" v-if="data.length != 0">
+            <thead>
+              <tr>
+                <th rowspan="3">Date</th>
+                <th colspan="9">High Service Pump Hours</th>
+                <th colspan="20">Daily Water Analysis</th>
+                <th colspan="2" rowspan="2">Fluoride Residual</th>
+                <th colspan="10">Filter Data</th>
+              </tr>
+              <tr>
+                <th colspan="5">Pump House</th>
+                <th colspan="4">Northside</th>
+                <th colspan="5">Raw Water</th>
+                <th colspan="5">Settled</th>
+                <th colspan="5">Filtered</th>
+                <th colspan="5">Finished</th>
+                <th colspan="8">Hours Backwashed</th>
+                <th rowspan="2">Gal. Used</th>
+                <th rowspan="2"># washed</th>
+              </tr>
+              <tr>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+                <th>6</th>
+                <th>7</th>
+                <th>8</th>
+                <th>9</th>
+                <th>pH</th>
+                <th>Par</th>
+                <th>Alk</th>
+                <th>Turb</th>
+                <th>Cl2</th>
+                <th>pH</th>
+                <th>Par</th>
+                <th>Alk</th>
+                <th>Turb</th>
+                <th>Cl2</th>
+                <th>pH</th>
+                <th>Par</th>
+                <th>Alk</th>
+                <th>Turb</th>
+                <th>Cl2</th>
+                <th>pH</th>
+                <th>Par</th>
+                <th>Alk</th>
+                <th>Turb</th>
+                <th>Cl2</th>
+                <th>Raw</th>
+                <th>Fin</th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+                <th>6</th>
+                <th>7</th>
+                <th>8</th>
+              </tr>
+            </thead>
+            <tbody class="content">
+              <tr v-for="(date, index) in data">
+                <td>{{ formatDate(date.date) }}</td>
+                <td>{{ getDifference("hsp1", index) }}</td>
+                <td>{{ getDifference("hsp2", index) }}</td>
+                <td>{{ getDifference("hsp3", index) }}</td>
+                <td>{{ getDifference("hsp4", index) }}</td>
+                <td>{{ getDifference("hsp5", index) }}</td>
+                <td>{{ pushOnToCalculated('nsps6', index) }}</td>
+                <td>{{ pushOnToCalculated('nsps7', index) }}</td>
+                <td>{{ pushOnToCalculated('nsps8', index) }}</td>
+                <td>{{ pushOnToCalculated('nsps9', index) }}</td>
+                <td>{{ decimalPlaces("Raw_PH", index, 2) }}</td>
+                <td>{{ decimalPlaces("Raw_Partial", index, 2) }}</td>
+                <td>{{ decimalPlaces("Raw_Total", index, 1) }}</td>
+                <td>{{ decimalPlaces("Raw_Turbidity", index, 2) }}</td>
+                <td>{{ average("north_mix_cl2_total", "south_mix_cl2_total", index) }}</td>
+                <td>{{ average("NSett_PH", "SSett_PH", index) }}</td>
+                <td>{{ average("NSett_Partial", "SSett_Partial", index) }}</td>
+                <td>{{ average("NSett_Total", "SSett_Total", index) }}</td>
+                <td>{{ average("NSett_Turbidity", "SSett_Turbidity", index) }}</td>
+                <td>{{ average("north_settled_cl2_total", "south_settled_cl2_total", index) }}</td>
+                <td>{{ average("NFilt_PH", "SFilt_PH", index) }}</td>
+                <td>{{ average("NFilt_Partial", "SFilt_Partial", index) }}</td>
+                <td>{{ average("NFilt_Total", "SFilt_Total", index) }}</td>
+                <td>{{ average("NFilt_Turbidity", "SFilt_Turbidity", index) }}</td>
+                <td>{{ average("north_filter_cl2_total", "south_filter_cl2_total", index) }}</td>
+                <td>{{ decimalPlaces("Finished_PH", index, 2) }}</td>
+                <td>{{ decimalPlaces("Finished_Partial", index, 2) }}</td>
+                <td>{{ decimalPlaces("Finished_Total", index, 1) }}</td>
+                <td>{{ decimalPlaces("Finished_Turbidity", index, 2) }}</td>
+                <td>{{ decimalPlaces("fin_cl2_total", index, 2) }}</td>
+                <td>{{ decimalPlaces("raw_fluoride_plant", index, 2) }}</td>
+                <td>{{ decimalPlaces("fin_fluoride_plant", index, 2) }}</td>
+                <td>{{ pushOnToCalculated("filt1_hrs", index) }}</td>
+                <td>{{ pushOnToCalculated("filt2_hrs", index) }}</td>
+                <td>{{ pushOnToCalculated("filt3_hrs", index) }}</td>
+                <td>{{ pushOnToCalculated("filt4_hrs", index) }}</td>
+                <td>{{ pushOnToCalculated("filt5_hrs", index) }}</td>
+                <td>{{ pushOnToCalculated("filt6_hrs", index) }}</td>
+                <td>{{ pushOnToCalculated("filt7_hrs", index) }}</td>
+                <td>{{ pushOnToCalculated("filt8_hrs", index) }}</td>
+                <td>{{ pushOnToCalculated("GallonsUsed", index) }}</td>
+                <td>{{ pushOnToCalculated("NumberWashed", index) }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="bg-danger"> <!--  Total -->
+                <th>Total</th>
+                <td>{{ columnCalc("hsp1").total }}</td>
+                <td>{{ columnCalc("hsp2").total }}</td>
+                <td>{{ columnCalc("hsp3").total }}</td>
+                <td>{{ columnCalc("hsp4").total }}</td>
+                <td>{{ columnCalc("hsp5").total }}</td>
+                <td>{{ columnCalc("nsps6").total }}</td>
+                <td>{{ columnCalc("nsps7").total }}</td>
+                <td>{{ columnCalc("nsps8").total }}</td>
+                <td>{{ columnCalc("nsps9").total }}</td>
+                <td>{{ columnCalc("Raw_PH").total }}</td>
+                <td>{{ columnCalc("Raw_Partial").total }}</td>
+                <td>{{ columnCalc("Raw_Total").total }}</td>
+                <td>{{ columnCalc("Raw_Turbidity").total }}</td>
+                <td>{{ columnCalc("north_mix_cl2_total").total }}</td>
+                <td>{{ columnCalc("NSett_PH").total }}</td>
+                <td>{{ columnCalc("NSett_Partial").total }}</td>
+                <td>{{ columnCalc("NSett_Total").total }}</td>
+                <td>{{ columnCalc("NSett_Turbidity").total }}</td>
+                <td>{{ columnCalc("north_settled_cl2_total").total }}</td>
+                <td>{{ columnCalc("NFilt_PH").total }}</td>
+                <td>{{ columnCalc("NFilt_Partial").total }}</td>
+                <td>{{ columnCalc("NFilt_Total").total }}</td>
+                <td>{{ columnCalc("NFilt_Turbidity").total }}</td>
+                <td>{{ columnCalc("north_filter_cl2_total").total }}</td>
+                <td>{{ columnCalc("Finished_PH").total }}</td>
+                <td>{{ columnCalc("Finished_Partial").total }}</td>
+                <td>{{ columnCalc("Finished_Total").total }}</td>
+                <td>{{ columnCalc("Finished_Turbidity").total }}</td>
+                <td>{{ columnCalc("fin_cl2_total").total }}</td>
+                <td>{{ columnCalc("raw_fluoride_plant").total }}</td>
+                <td>{{ columnCalc("fin_fluoride_plant").total }}</td>
+                <td>{{ columnCalc("filt1_hrs").total }}</td>
+                <td>{{ columnCalc("filt2_hrs").total }}</td>
+                <td>{{ columnCalc("filt3_hrs").total }}</td>
+                <td>{{ columnCalc("filt4_hrs").total }}</td>
+                <td>{{ columnCalc("filt5_hrs").total }}</td>
+                <td>{{ columnCalc("filt6_hrs").total }}</td>
+                <td>{{ columnCalc("filt7_hrs").total }}</td>
+                <td>{{ columnCalc("filt8_hrs").total }}</td>
+                <td>{{ columnCalc("GallonsUsed").total }}</td>
+                <td>{{ columnCalc("NumberWashed").total }}</td>
+              </tr>
+              <tr class="bg-success"> <!--  Max -->
+                <th>Max</th>
+                <td>{{ columnCalc("hsp1").max }}</td>
+                <td>{{ columnCalc("hsp2").max }}</td>
+                <td>{{ columnCalc("hsp3").max }}</td>
+                <td>{{ columnCalc("hsp4").max }}</td>
+                <td>{{ columnCalc("hsp5").max }}</td>
+                <td>{{ columnCalc("nsps6").max }}</td>
+                <td>{{ columnCalc("nsps7").max }}</td>
+                <td>{{ columnCalc("nsps8").max }}</td>
+                <td>{{ columnCalc("nsps9").max }}</td>
+                <td>{{ columnCalc("Raw_PH").max }}</td>
+                <td>{{ columnCalc("Raw_Partial").max }}</td>
+                <td>{{ columnCalc("Raw_Total").max }}</td>
+                <td>{{ columnCalc("Raw_Turbidity").max }}</td>
+                <td>{{ columnCalc("north_mix_cl2_total").max }}</td>
+                <td>{{ columnCalc("NSett_PH").max }}</td>
+                <td>{{ columnCalc("NSett_Partial").max }}</td>
+                <td>{{ columnCalc("NSett_Total").max }}</td>
+                <td>{{ columnCalc("NSett_Turbidity").max }}</td>
+                <td>{{ columnCalc("north_settled_cl2_total").max }}</td>
+                <td>{{ columnCalc("NFilt_PH").max }}</td>
+                <td>{{ columnCalc("NFilt_Partial").max }}</td>
+                <td>{{ columnCalc("NFilt_Total").max }}</td>
+                <td>{{ columnCalc("NFilt_Turbidity").max }}</td>
+                <td>{{ columnCalc("north_filter_cl2_total").max }}</td>
+                <td>{{ columnCalc("Finished_PH").max }}</td>
+                <td>{{ columnCalc("Finished_Partial").max }}</td>
+                <td>{{ columnCalc("Finished_Total").max }}</td>
+                <td>{{ columnCalc("Finished_Turbidity").max }}</td>
+                <td>{{ columnCalc("fin_cl2_total").max }}</td>
+                <td>{{ columnCalc("raw_fluoride_plant").max }}</td>
+                <td>{{ columnCalc("fin_fluoride_plant").max }}</td>
+                <td>{{ columnCalc("filt1_hrs").max }}</td>
+                <td>{{ columnCalc("filt2_hrs").max }}</td>
+                <td>{{ columnCalc("filt3_hrs").max }}</td>
+                <td>{{ columnCalc("filt4_hrs").max }}</td>
+                <td>{{ columnCalc("filt5_hrs").max }}</td>
+                <td>{{ columnCalc("filt6_hrs").max }}</td>
+                <td>{{ columnCalc("filt7_hrs").max }}</td>
+                <td>{{ columnCalc("filt8_hrs").max }}</td>
+                <td>{{ columnCalc("GallonsUsed").max }}</td>
+                <td>{{ columnCalc("NumberWashed").max }}</td>
+              </tr>
+              <tr class="bg-warning"> <!--  Min -->
+                <th>Min</th>
+                <td>{{ columnCalc("hsp1").min }}</td>
+                <td>{{ columnCalc("hsp2").min }}</td>
+                <td>{{ columnCalc("hsp3").min }}</td>
+                <td>{{ columnCalc("hsp4").min }}</td>
+                <td>{{ columnCalc("hsp5").min }}</td>
+                <td>{{ columnCalc("nsps6").min }}</td>
+                <td>{{ columnCalc("nsps7").min }}</td>
+                <td>{{ columnCalc("nsps8").min }}</td>
+                <td>{{ columnCalc("nsps9").min }}</td>
+                <td>{{ columnCalc("Raw_PH").min }}</td>
+                <td>{{ columnCalc("Raw_Partial").min }}</td>
+                <td>{{ columnCalc("Raw_Total").min }}</td>
+                <td>{{ columnCalc("Raw_Turbidity").min }}</td>
+                <td>{{ columnCalc("north_mix_cl2_total").min }}</td>
+                <td>{{ columnCalc("NSett_PH").min }}</td>
+                <td>{{ columnCalc("NSett_Partial").min }}</td>
+                <td>{{ columnCalc("NSett_Total").min }}</td>
+                <td>{{ columnCalc("NSett_Turbidity").min }}</td>
+                <td>{{ columnCalc("north_settled_cl2_total").min }}</td>
+                <td>{{ columnCalc("NFilt_PH").min }}</td>
+                <td>{{ columnCalc("NFilt_Partial").min }}</td>
+                <td>{{ columnCalc("NFilt_Total").min }}</td>
+                <td>{{ columnCalc("NFilt_Turbidity").min }}</td>
+                <td>{{ columnCalc("north_filter_cl2_total").min }}</td>
+                <td>{{ columnCalc("Finished_PH").min }}</td>
+                <td>{{ columnCalc("Finished_Partial").min }}</td>
+                <td>{{ columnCalc("Finished_Total").min }}</td>
+                <td>{{ columnCalc("Finished_Turbidity").min }}</td>
+                <td>{{ columnCalc("fin_cl2_total").min }}</td>
+                <td>{{ columnCalc("raw_fluoride_plant").min }}</td>
+                <td>{{ columnCalc("fin_fluoride_plant").min }}</td>
+                <td>{{ columnCalc("filt1_hrs").min }}</td>
+                <td>{{ columnCalc("filt2_hrs").min }}</td>
+                <td>{{ columnCalc("filt3_hrs").min }}</td>
+                <td>{{ columnCalc("filt4_hrs").min }}</td>
+                <td>{{ columnCalc("filt5_hrs").min }}</td>
+                <td>{{ columnCalc("filt6_hrs").min }}</td>
+                <td>{{ columnCalc("filt7_hrs").min }}</td>
+                <td>{{ columnCalc("filt8_hrs").min }}</td>
+                <td>{{ columnCalc("GallonsUsed").min }}</td>
+                <td>{{ columnCalc("NumberWashed").min }}</td>
+              </tr>
+              <tr class="bg-info"> <!--  Avg -->
+                <th>Avg</th>
+                <td>{{ columnCalc("hsp1").avg }}</td>
+                <td>{{ columnCalc("hsp2").avg }}</td>
+                <td>{{ columnCalc("hsp3").avg }}</td>
+                <td>{{ columnCalc("hsp4").avg }}</td>
+                <td>{{ columnCalc("hsp5").avg }}</td>
+                <td>{{ columnCalc("nsps6").avg }}</td>
+                <td>{{ columnCalc("nsps7").avg }}</td>
+                <td>{{ columnCalc("nsps8").avg }}</td>
+                <td>{{ columnCalc("nsps9").avg }}</td>
+                <td>{{ columnCalc("Raw_PH").avg }}</td>
+                <td>{{ columnCalc("Raw_Partial").avg }}</td>
+                <td>{{ columnCalc("Raw_Total").avg }}</td>
+                <td>{{ columnCalc("Raw_Turbidity").avg }}</td>
+                <td>{{ columnCalc("north_mix_cl2_total").avg }}</td>
+                <td>{{ columnCalc("NSett_PH").avg }}</td>
+                <td>{{ columnCalc("NSett_Partial").avg }}</td>
+                <td>{{ columnCalc("NSett_Total").avg }}</td>
+                <td>{{ columnCalc("NSett_Turbidity").avg }}</td>
+                <td>{{ columnCalc("north_settled_cl2_total").avg }}</td>
+                <td>{{ columnCalc("NFilt_PH").avg }}</td>
+                <td>{{ columnCalc("NFilt_Partial").avg }}</td>
+                <td>{{ columnCalc("NFilt_Total").avg }}</td>
+                <td>{{ columnCalc("NFilt_Turbidity").avg }}</td>
+                <td>{{ columnCalc("north_filter_cl2_total").avg }}</td>
+                <td>{{ columnCalc("Finished_PH").avg }}</td>
+                <td>{{ columnCalc("Finished_Partial").avg }}</td>
+                <td>{{ columnCalc("Finished_Total").avg }}</td>
+                <td>{{ columnCalc("Finished_Turbidity").avg }}</td>
+                <td>{{ columnCalc("fin_cl2_total").avg }}</td>
+                <td>{{ columnCalc("raw_fluoride_plant").avg }}</td>
+                <td>{{ columnCalc("fin_fluoride_plant").avg }}</td>
+                <td>{{ columnCalc("filt1_hrs").avg }}</td>
+                <td>{{ columnCalc("filt2_hrs").avg }}</td>
+                <td>{{ columnCalc("filt3_hrs").avg }}</td>
+                <td>{{ columnCalc("filt4_hrs").avg }}</td>
+                <td>{{ columnCalc("filt5_hrs").avg }}</td>
+                <td>{{ columnCalc("filt6_hrs").avg }}</td>
+                <td>{{ columnCalc("filt7_hrs").avg }}</td>
+                <td>{{ columnCalc("filt8_hrs").avg }}</td>
+                <td>{{ columnCalc("GallonsUsed").avg }}</td>
+                <td>{{ columnCalc("NumberWashed").avg }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <button id="download-csv" v-on:click="exportTableToCSV('monthly_composite.csv')">Download Excel File</button>
+    </div>
+    <script src="./main.js?v=1.0.2"></script>
+  </body>
+</html>

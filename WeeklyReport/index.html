@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Weekly Water Production Report</title><!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <style media="screen">
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      input {
+        border: none;
+        border-bottom: 1px solid black;
+      }
+      table {
+        border: 1px solid darkgray;
+      }
+    </style>
+    <style media="print">
+      input {
+        border: none;
+        border-bottom: 1px solid black;
+      }
+      a[href]:after {
+        content: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid main-card" id="app">
+      <h4 class="text-center">MEMORANDUM</h4>
+      <div class="text-left">
+        <p><strong>TO:</strong> <a href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=76&record=ad75a9a8ead44061a35ee5c1653888aa" target="_blank">{{ personnel.foreman }}</a>, Foreman, Lewisville Water Plant</p>
+        <p><strong>FROM:</strong> <a href="http://eservices.cityoflewisville.com/psofia/default.aspx?form=76&record=ad75a9a8ead44061a35ee5c1653888aa" target="_blank">{{ personnel.a_chief }}</a>, Chief Operator, Water Plant</p>
+        <p><strong>DATE:</strong> {{ monthParam + "/" + dayParam + "/" + yearParam }}</p>
+        <p><strong>SUBJECT:  WEEKLY WATER PRODUCTION REPORT</strong></p>
+      </div>
+      
+      <div v-if="data.length > 0">
+        <table class="table table-bordered table-condensed">
+          <thead>
+            <tr>
+              <th rowspan="2">Date</th>
+              <th rowspan="2">Day</th>
+              <th rowspan="2">Total Raw Water</th>
+              <th colspan="5">Chemicals</th>
+              <th colspan="7">Analysis</th>
+            </tr>
+            <tr>
+              <th>Lime lbs.</th>
+              <th>Ferric lbs.</th>
+              <th>Chlorine lbs.</th>
+              <th>Ammonia lbs.</th>
+              <th>Fluoride lbs.</th>
+              <th>Raw pH</th>
+              <th>Turbidity NTUs</th>
+              <th>Fluoride Level</th>
+              <th>Finished pH</th>
+              <th>Turbidity NTUs</th>
+              <th>Cl2 Residual</th>
+              <th>Fluoride Level</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(day, index) in data">
+              <td>{{ formatDate(index) }}</td>
+              <td>{{ days[index] }}</td>
+              <td>{{ combinedTotal('raw_vault', null, index, 'thousandths') }}</td>
+              <td>{{ calculatedData[index]['lime'] }}</td>
+              <td>{{ calculatedData[index]['ferric'] }}</td>
+              <td>{{ calculatedData[index]['chlorine'] }}</td>
+              <td>{{ calculatedData[index]['ammonia'] }}</td>
+              <td>0</td>
+              <td>{{ toDecimal(day.Raw_PH, 2) }}</td>
+              <td>{{ toDecimal(day.Raw_Turbidity, 1) }}</td>
+              <td>{{ toDecimal(day.raw_fluoride_plant, 2) }}</td>
+              <td>{{ toDecimal(day.Finished_PH, 2) }}</td>
+              <td>{{ toDecimal(day.Finished_Turbidity, 2) }}</td>
+              <td>{{ toDecimal(day.fin_cl2_total, 1) }}</td>
+              <td>{{ toDecimal(day.fin_fluoride_plant, 2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Comments:</p>
+        <br>
+        <hr>
+        <h4>Chemical Inventory</h4>
+        <table class="table table-condensed">
+          <thead>
+            <tr>
+              <th colspan="7">Chemicals</th>
+              <th colspan="5">Diesel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ammonia</td>
+              <td>#1</td>
+              <td>{{ findAmmLevel('Amm_Tank1_Level') }} %</td>
+              <td></td>
+              <td>#2</td>
+              <td colspan="2">{{ findAmmLevel('Amm_Tank2_Level') }} %</td>
+              <td>WTP</td>
+              <td>inches</td>
+              <td>{{ chems('diesel_wtp') }}</td>
+              <td>Gals</td>
+              <td>______</td>
+            </tr>
+            <tr>
+              <td>Chlorine</td>
+              <td>Full</td>
+              <td>{{ checkChlorineChange().full }}</td>
+              <td>Online:</td>
+              <td>{{ checkChlorineChange().online }}</td>
+              <td>Empty:</td>
+              <td>{{ checkChlorineChange().empty }}</td>
+              <td>NSPS</td>
+              <td>inches</td>
+              <td>{{ chems('diesel_nsps') }}</td>
+              <td>Gals</td>
+              <td>______</td>
+            </tr>
+            <tr>
+              <td>Carbon</td>
+              <td>Bags</td>
+              <td>{{ chems('carbon_pallets') }}</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>SSPS</td>
+              <td>inches</td>
+              <td>{{ chems('diesel_ssps') }}</td>
+              <td>Gals</td>
+              <td>______</td>
+            </tr>
+            <tr>
+              <td>Ferric</td>
+              <td>Tank #1</td>
+              <td colspan="2">{{ chems('ferr_tank1') }}</td>
+              <td>Tank #2</td>
+              <td colspan="2">{{ chems('ferr_tank2') }}</td>
+              <td>ESPS</td>
+              <td>level</td>
+              <td>{{ chems('diesel_esps') }}</td>
+              <td>Gals</td>
+              <td>______</td>
+            </tr>
+            <tr>
+              <td>Fluoride</td>
+              <td>Gallons</td>
+              <td colspan="2">{{ chems('fluoride_barrels') }}</td>
+              <td></td>
+              <td colspan="2"></td>
+              <td>MWPS</td>
+              <td>level</td>
+              <td>{{ chems('diesel_mwps') }}</td>
+              <td>Gals</td>
+              <td>______</td>
+            </tr>
+            <tr>
+              <td>Lime</td>
+              <td>Bin #1</td>
+              <td colspan="2">{{ chems('lime_silo1') }}</td>
+              <td>Bin #2</td>
+              <td colspan="2">{{ chems('lime_silo2') }}</td>
+              <td>HTH</td>
+              <td>lbs.</td>
+              <td colspan="2">{{ chems('hth') }}</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td colspan="2"></td>
+              <td></td>
+              <td colspan="2"></td>
+              <td>Polymer</td>
+              <td>Full</td>
+              <td>{{ chems('full_poly_barrels') }}</td>
+              <td>Online</td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td colspan="2"></td>
+              <td></td>
+              <td colspan="2"></td>
+              <td>Caustic</td>
+              <td>Full</td>
+              <td>{{ chems('full_caustic_barrels') }}</td>
+              <td>Online</td>
+              <td>N/A</td>
+            </tr>
+          </tbody>
+          <thead>
+            <tr>
+              <th colspan="7">Bleach</th>
+              <th colspan="5">LAS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Bleach (gal)</td>
+              <td>#2</td>
+              <td colspan="2">{{ data[6].ovhd2_bleach }}</td>
+              <td>ESPS</td>
+              <td colspan="2">{{ data[6].esps_bleach }}</td>
+              <td>LAS (gal)</td>
+              <td>#2</td>
+              <td>{{ data[6].ovhd2_las }}</td>
+              <td>ESPS</td>
+              <td>{{ data[6].esps_las }}</td>
+            </tr>
+            <tr>
+              <td>Bleach (gal)</td>
+              <td>#3</td>
+              <td colspan="2">{{ data[6].ovhd3_bleach }}</td>
+              <td>SSPS</td>
+              <td colspan="2">{{ data[6].ssps_bleach }}</td>
+              <td>LAS (gal)</td>
+              <td>#3</td>
+              <td>{{ data[6].ovhd3_las }}</td>
+              <td>SSPS</td>
+              <td>{{ data[6].ssps_las }}</td>
+            </tr>
+            <tr>
+              <td>Bleach (gal)</td>
+              <td>#5</td>
+              <td colspan="2">{{ data[6].ovhd5_bleach }}</td>
+              <td>MWPS</td>
+              <td colspan="2">{{ data[6].mwps_bleach }}</td>
+              <td>LAS (gal)</td>
+              <td>#5</td>
+              <td>{{ data[6].ovhd5_las }}</td>
+              <td>MWPS</td>
+              <td>{{ data[6].mwps_las }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js"></script>
+  </body>
+</html>

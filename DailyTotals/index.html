@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Daily Totals</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <style media="screen">
+
+      table {
+        max-width: 8in;
+        border-collapse: collapse;
+      }
+
+      table div {
+        max-width: 6in;
+      }
+      table th {
+        text-align: center;
+      }
+
+      table td {
+        font-size: 8pt;
+      }
+
+      .nav, .navbar {
+        background-color: lightblue !important;
+      }
+
+      .container-fluid {
+        text-align: center;
+      }
+
+      .grayBackground {
+        background-color: lightgray;
+      }
+
+      .underlined {
+        text-decoration: underline;
+      }
+
+      .padLeft {
+        padding-left: 15mm;
+      }
+
+      .wrap {
+        max-width: 100px;
+        display: inline;
+      }
+      .center {
+        margin: 0 auto;
+      }
+
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+      }
+      
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+
+      .comments {
+        height: 20px;
+      }
+
+      thead tr:nth-of-type(2) th {
+  			font-size: .8em;
+  		}
+      thead tr:nth-of-type(4) th {
+  			font-size: .8em;
+  		}
+      @media print {
+        .padLeft {
+          padding-left: 15mm;
+        }
+  		}
+    </style>
+  </head>
+  <body>
+    <div class="container" id="app">
+      <div class="card main-card">
+        <table class="table table-bordered table-condensed">
+          <thead>
+            <tr>
+              <th colspan="10" class=""><h1>{{ dateString }} Daily Totals</h1></th>
+            </tr>
+            <tr>
+              <th rowspan="2">Time</th>
+              <th colspan="2">Lime lbs/2hrs</th>
+              <th colspan="3">Ferric lbs/day</th>
+              <th>Chlorine lbs/day</th>
+              <th>Ammonia lbs/day</th>
+              <th>Carbon lbs/2hr</th>
+              <th>Flow Rate</th>
+            </tr>
+            <tr>
+              <th>North</th>
+              <th>South</th>
+              <th>#1</th>
+              <th>#2</th>
+              <th>#3</th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <div class="spinner" v-if="loading"></div>
+            <tr v-for="(data, index) in roundsData">
+              <td>{{ data.rTime }}</td>
+              <td>{{ data.lime_1n_lbs }}</td>
+              <td>{{ data.lime_2s_lbs }}</td>
+              <td>{{ (parseInt(data.ferr_pump1_ml) || 0) * 120 }}</td>
+              <td>{{ (parseInt(data.ferr_pump2_ml) || 0) * 120 }}</td>
+              <td>{{ (parseInt(data.ferr_pump3_ml) || 0) * 120 }}</td>
+              <td>{{ rowTotal(data.chlor1_lbs, data.chlor2_lbs, data.chlor3_lbs) }}</td>
+              <td>{{ rowTotal(data.amm1_lbs, data.amm2_lbs, data.amm3_lbs) }}</td>
+              <td>{{ parseFloat(carbonCalc().roundTotal) }}</td>
+              <td>{{ rowTotal(data.raw_flow_north, data.raw_flow_south) }}</td>
+            </tr>
+            <tr class="grayBackground">
+              <th>Total Lbs. Used</th>
+              <td colspan="2">{{ rowTotal(parseFloat(roundsColumnCalc("lime_1n_lbs").total), parseFloat(roundsColumnCalc("lime_2s_lbs").total)).toFixed(3) }}</td>
+              <td colspan="3">{{ rowTotal(parseFloat(roundsColumnCalc("ferr_pump1_ml").total), parseFloat(roundsColumnCalc("ferr_pump2_ml").total), parseFloat(roundsColumnCalc("ferr_pump3_ml").total)).toFixed(3) }}</td>
+              <td>{{ rowTotal(parseFloat(roundsColumnCalc("chlor1_lbs").avg), parseFloat(roundsColumnCalc("chlor2_lbs").avg), parseFloat(roundsColumnCalc("chlor3_lbs").avg)).toFixed(3) }}</td>
+              <td>{{ rowTotal(parseFloat(roundsColumnCalc("amm1_lbs").avg), parseFloat(roundsColumnCalc("amm2_lbs").avg), parseFloat(roundsColumnCalc("amm3_lbs").avg)).toFixed(3) }}</td>
+              <td>{{ carbonCalc().dailyTotal }}</td>
+              <td></td>
+            </tr>
+<!--
+            <tr class="bg-warning">
+              <th>Average Lbs. Used</th>
+              <td colspan="2">{{ rowTotal(parseFloat(roundsColumnCalc("lime_1n_lbs").avg), parseFloat(roundsColumnCalc("lime_2s_lbs").avg)).toFixed(2) }}</td>
+              <td colspan="3">{{ rowTotal(parseFloat(roundsColumnCalc("ferr_pump1_ml").avg), parseFloat(roundsColumnCalc("ferr_pump2_ml").avg), parseFloat(roundsColumnCalc("ferr_pump3_ml").avg)).toFixed(2) }}</td>
+              <td>{{ rowTotal(parseFloat(roundsColumnCalc("chlor1_lbs").avg), parseFloat(roundsColumnCalc("chlor2_lbs").avg), parseFloat(roundsColumnCalc("chlor3_lbs").avg)).toFixed(2) }}</td>
+              <td>{{ rowTotal(parseFloat(roundsColumnCalc("amm1_lbs").avg), parseFloat(roundsColumnCalc("amm2_lbs").avg), parseFloat(roundsColumnCalc("amm3_lbs").avg)).toFixed(2) }}</td>
+              <td>{{ carbonCalc().avg }}</td>
+              <td></td>
+            </tr>
+-->
+            <tr class="bg-danger">
+              <th>Lbs/hr</th>
+              <td colspan="2">{{ rowTotal(parseFloat(roundsColumnCalc("lime_1n_lbs").lbs_hr), parseFloat(roundsColumnCalc("lime_2s_lbs").lbs_hr)).toFixed(3) }}</td>
+              <td colspan="3">{{ rowTotal(parseFloat(roundsColumnCalc("ferr_pump1_ml").lbs_hr), parseFloat(roundsColumnCalc("ferr_pump2_ml").lbs_hr), parseFloat(roundsColumnCalc("ferr_pump3_ml").lbs_hr)).toFixed(3) }}</td>
+              <td>{{ rowTotal(parseFloat(roundsColumnCalc("chlor1_lbs").lbs_hr), parseFloat(roundsColumnCalc("chlor2_lbs").lbs_hr), parseFloat(roundsColumnCalc("chlor3_lbs").lbs_hr)).toFixed(3) }}</td>
+              <td>{{ rowTotal(parseFloat(roundsColumnCalc("amm1_lbs").lbs_hr), parseFloat(roundsColumnCalc("amm2_lbs").lbs_hr), parseFloat(roundsColumnCalc("amm3_lbs").lbs_hr)).toFixed(3) }}</td>
+              <td>{{ carbonCalc().lbs_hr }}</td>
+              <td></td>
+            </tr>
+            <tr class="bg-info">
+              <th>mg/l</th>
+              <td colspan="2">{{ rowTotal(parseFloat(roundsColumnCalc("lime_1n_lbs").mg_l), parseFloat(roundsColumnCalc("lime_2s_lbs").mg_l)).toFixed(3) }}</td>
+              <td colspan="3">{{ rowTotal(parseFloat(roundsColumnCalc("ferr_pump1_ml").mg_l), parseFloat(roundsColumnCalc("ferr_pump2_ml").mg_l), parseFloat(roundsColumnCalc("ferr_pump3_ml").mg_l)).toFixed(3) }}</td>
+              <td>{{ rowTotal(parseFloat(roundsColumnCalc("chlor1_lbs").mg_l), parseFloat(roundsColumnCalc("chlor2_lbs").mg_l), parseFloat(roundsColumnCalc("chlor3_lbs").mg_l)).toFixed(3) }}</td>
+              <td>{{ rowTotal(parseFloat(roundsColumnCalc("amm1_lbs").mg_l), parseFloat(roundsColumnCalc("amm2_lbs").mg_l), parseFloat(roundsColumnCalc("amm3_lbs").mg_l)).toFixed(3) }}</td>
+              <td>{{ carbonCalc().mg_l }}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <hr>
+        <div class="row">
+          <div class="col-sm-4">
+            <!-- Flouride is not currently used, but probably needs to be implemented still -->
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th colspan="2">Flouride</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start Weight</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Weight at Fill</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Filled to Weight</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Ending Weight</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Filled to Weight</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Ending Weight</td>
+                  <td>0</td>
+                </tr>
+                <tr class="grayBackground">
+                  <th>Total Lbs. Used</th>
+                  <td>0</td>
+                </tr>
+                <tr class="bg-warning">
+                  <th>Average Lbs. Used</th>
+                  <td>0</td>
+                </tr>
+                <tr class="bg-danger">
+                  <th>Lbs/hr</th>
+                  <td>0</td>
+                </tr>
+                <tr class="bg-info">
+                  <th>mg/l</th>
+                  <td>0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col-sm-4" v-if="roundsData[0]">
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th colspan="2">Polymer</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start Weight</td>
+                  <td>{{ roundsData[0].poly_drumweight }}</td>
+                </tr>
+                <tr>
+                  <td>Weight Empty</td>
+                  <td>{{ getPolyWeight('empty') }}</td>
+                </tr>
+                <tr>
+                  <td>Weight New</td>
+                  <td>{{ getPolyWeight('new') }}</td>
+                </tr>
+                <tr>
+                  <td>Ending Weight</td>
+                  <td>{{ roundsData[roundsData.length - 1].poly_drumweight }}</td>
+                </tr>
+                <tr class="grayBackground">
+                  <th>Total Lbs. Used</th>
+                  <td>0</td>
+                </tr>
+                <tr class="bg-warning">
+                  <th>Average Lbs. Used</th>
+                  <td>0</td>
+                </tr>
+                <tr class="bg-danger">
+                  <th>Lbs/hr</th>
+                  <td>0</td>
+                </tr>
+                <tr class="bg-info">
+                  <th>mg/l</th>
+                  <td>0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="col-sm-4">
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th colspan="2">Caustic</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start Weight</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Weight Empty</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Weight New</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Ending Weight</td>
+                  <td>0</td>
+                </tr>
+                <tr class="grayBackground">
+                  <th>Total Lbs. Used</th>
+                  <td>0</td>
+                </tr>
+                <tr class="bg-warning">
+                  <th>Average Lbs. Used</th>
+                  <td>0</td>
+                </tr>
+                <tr class="bg-danger">
+                  <th>Lbs/hr</th>
+                  <td>0</td>
+                </tr>
+                <tr class="bg-info">
+                  <th>mg/l</th>
+                  <td>0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <hr>
+        <div class="row">
+          <div class="col-sm-4">
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th colspan="3">#2 Overhead</th>
+                </tr>
+                <tr>
+                  <th colspan="2">Bleach</th>
+                  <th>LAS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start Gallons</td>
+                  <td>{{ bleachData.ovhd2_bleach }}</td>
+                  <td>{{ bleachData.ovhd2_las }}</td>
+                </tr>
+                <tr>
+                  <td>Gallons Empty</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Gallons New</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Ending Gallons</td>
+                  <td>{{ bleachData.ovhd2_bleach }}</td>
+                  <td>{{ bleachData.ovhd2_las }}</td>
+                </tr>
+                <tr class="bg-warning">
+                  <td>Gal. Used</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr class="bg-danger">
+                  <td>lbs/day</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col-sm-4">
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th colspan="3">#3 Overhead</th>
+                </tr>
+                <tr>
+                  <th colspan="2">Bleach</th>
+                  <th>LAS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start Gallons</td>
+                  <td>{{ bleachData.ovhd3_bleach }}</td>
+                  <td>{{ bleachData.ovhd3_las }}</td>
+                </tr>
+                <tr>
+                  <td>Gallons Empty</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Gallons New</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Ending Gallons</td>
+                  <td>{{ bleachData.ovhd3_bleach }}</td>
+                  <td>{{ bleachData.ovhd3_las }}</td>
+                </tr>
+                <tr class="bg-warning">
+                  <td>Gal. Used</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr class="bg-danger">
+                  <td>lbs/day</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col-sm-4">
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th colspan="3">#4 Overhead</th>
+                </tr>
+                <tr>
+                  <th colspan="2">Bleach</th>
+                  <th>LAS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start Gallons</td>
+                  <td>{{ bleachData.ovhd4_bleach }}</td>
+                  <td>{{ bleachData.ovhd4_las }}</td>
+                </tr>
+                <tr>
+                  <td>Gallons Empty</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Gallons New</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Ending Gallons</td>
+                  <td>{{ bleachData.ovhd4_bleach }}</td>
+                  <td>{{ bleachData.ovhd4_las }}</td>
+                </tr>
+                <tr class="bg-warning">
+                  <td>Gal. Used</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr class="bg-danger">
+                  <td>lbs/day</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <hr>
+        <div class="row">
+          <div class="col-sm-4">
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th colspan="3">ESPS</th>
+                </tr>
+                <tr>
+                  <th colspan="2">Bleach</th>
+                  <th>LAS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start Gallons</td>
+                  <td>{{ bleachData.esps_bleach }}</td>
+                  <td>{{ bleachData.esps_las }}</td>
+                </tr>
+                <tr>
+                  <td>Gallons Empty</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Gallons New</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Ending Gallons</td>
+                  <td>{{ bleachData.esps_bleach }}</td>
+                  <td>{{ bleachData.esps_las }}</td>
+                </tr>
+                <tr class="bg-warning">
+                  <td>Gal. Used</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr class="bg-danger">
+                  <td>lbs/day</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col-sm-4">
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th colspan="3">SSPS</th>
+                </tr>
+                <tr>
+                  <th colspan="2">Bleach</th>
+                  <th>LAS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start Gallons</td>
+                  <td>{{ bleachData.ssps_bleach }}</td>
+                  <td>{{ bleachData.ssps_las }}</td>
+                </tr>
+                <tr>
+                  <td>Gallons Empty</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Gallons New</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Ending Gallons</td>
+                  <td>{{ bleachData.ssps_bleach }}</td>
+                  <td>{{ bleachData.ssps_las }}</td>
+                </tr>
+                <tr class="bg-warning">
+                  <td>Gal. Used</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr class="bg-danger">
+                  <td>lbs/day</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col-sm-4">
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th colspan="3">MWPS</th>
+                </tr>
+                <tr>
+                  <th colspan="2">Bleach</th>
+                  <th>LAS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start Gallons</td>
+                  <td>{{ bleachData.mwps_bleach }}</td>
+                  <td>{{ bleachData.mwps_las }}</td>
+                </tr>
+                <tr>
+                  <td>Gallons Empty</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Gallons New</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>Ending Gallons</td>
+                  <td>{{ bleachData.mwps_bleach }}</td>
+                  <td>{{ bleachData.mwps_las }}</td>
+                </tr>
+                <tr class="bg-warning">
+                  <td>Gal. Used</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr class="bg-danger">
+                  <td>lbs/day</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <script src="./main.js?v=1.2"></script>
+  </body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Daily Water Analysis</title>
+
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <style type="text/css">
+  		html, body {
+  			height: 100%;
+  			width: 100%;
+  		}
+  		table {
+  			border: 2px solid #333 !important;
+  		}
+      thead tr:nth-of-type(2) th {
+        font-size: .8em;
+      }
+  		thead tr th{
+  			border-bottom: 2px solid #333 !important;
+  		}
+  		th.thickL, td.thickL {
+  			border-left: 2px solid #333 !important;
+  		}
+  		th.thickR, td.thickR {
+  			border-right: 2px solid #333 !important;
+  		}
+  		th, td {
+  			text-align: center;
+  		}
+  		tbody tr {
+  			height: 31px !important;
+  		}
+      .spinner{
+        position: absolute;
+        height: 50px;
+        width: 50px;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        margin-top: -50px;
+        background: url('../spinner.gif');
+        background-size: 100%;
+      }
+      
+      .highlight {
+        background-color: yellow !important;
+      }
+      
+      .error {
+        background-color: red !important;
+      }
+      
+      thead {
+        background-color: #00bfff;
+      }
+      td:first-child {
+        background-color: #00bfff;
+      }
+
+  		@media print {
+  			html, body{}
+  			h5 {
+  				margin-bottom: 0px !important;
+  			}
+  			h3 {
+  				margin-top: 0px !important;
+  			}
+  			tr.headerRow2 th {
+  				font-size: .8em !important;
+  			}
+  			tr.headerRow3 th {
+  				font-size: .6em !important;
+  			}
+  			td, th {
+  				padding: 2px !important;
+  			}
+  			td {
+  				font-size: .75em !important;
+  			}
+  			tbody tr {
+  				height: 20px !important;
+  			}
+        table th.editBtn, table td.editBtn {
+          display: none;
+        }
+  		}
+		</style>
+  </head>
+  <body>
+    <div id="app">
+      <h3 class="text-center">{{ roundsDate }} Daily Water Analysis</h3>
+      <table class="table table-bordered table-condensed">
+        <thead>
+          <tr>
+            <th rowspan="3" class="thickR">Time</th>
+            <th colspan="4" class="thickR">Finished Water</th>
+            <th colspan="5" class="thickR">Raw Water</th>
+            <th colspan="4" class="thickR">North Settled</th>
+            <th colspan="7" class="thickR">North Filter</th>
+            <th colspan="4" class="thickR">South Settled</th>
+            <th colspan="7" class="thickR">South Filter</th>
+            <th rowspan="3" class="thickR thickL">Initials</th>
+            <th rowspan="3" class="thickR editBtn"></th>
+          </tr>
+          <tr >
+            <th rowspan="2" class="thickL">pH</th>
+            <th colspan="2">Alkalinity</th>
+            <th rowspan="2" class="thickR">NTU</th>
+            <th rowspan="2">Temp</th>
+            <th rowspan="2">pH</th>
+            <th colspan="2">Alkalinity</th>
+            <th rowspan="2" class="thickR">NTU</th>
+            <th rowspan="2">pH</th>
+            <th colspan="2">Alkalinity</th>
+            <th rowspan="2" class="thickR">NTU</th>
+            <th rowspan="2">pH</th>
+            <th colspan="2">Alkalinity</th>
+            <th colspan="4" class="thickR">Turbidity</th>
+            <th rowspan="2">pH</th>
+            <th colspan="2">Alkalinity</th>
+            <th rowspan="2" class="thickR">NTU</th>
+            <th rowspan="2">pH</th>
+            <th colspan="2">Alkalinity</th>
+            <th colspan="4" class="thickR">Turbidity</th>
+          </tr>
+          <tr>
+            <th>Partial</th>
+            <th>Total</th>
+            <th>Partial</th>
+            <th>Total</th>
+            <th>Partial</th>
+            <th>Total</th>
+            <th>Partial</th>
+            <th>Total</th>
+            <th>1</th>
+            <th>2</th>
+            <th>3</th>
+            <th>4</th>
+            <th>Partial</th>
+            <th>Total</th>
+            <th>Partial</th>
+            <th>Total</th>
+            <th>5</th>
+            <th>6</th>
+            <th>7</th>
+            <th class="thickR">8</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(round, index) in rounds">
+            <td class="thickL" :class="{ highlight: checkTime(index) }">{{ round.rTime }}</td>
+            <td class="thickL" :class="{ highlight: checkTime(index) }">{{ round.finished_ph }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.finished_partial }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.finished_total }}</td>
+            <td class="thickR" :class="{ highlight: checkTime(index) }">{{ round.finished_turbidity }}</td>
+            
+            <td :class="{ highlight: checkTime(index) }">{{ round.raw_temp }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.raw_ph }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.raw_partial }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.raw_total }}</td>
+            <td class="thickR" :class="{ highlight: checkTime(index) }">{{ round.raw_turbidity }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.nsett_ph }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.nsett_partial }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.nsett_total }}</td>
+            <td class="thickR" :class="{ highlight: checkTime(index) }">{{ round.nsett_turbidity }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.nfilt_ph }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.nfilt_partial }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.nfilt_total }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.nfiltturb_1 }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.nfiltturb_2 }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.nfiltturb_3 }}</td>
+            <td class="thickR" :class="{ highlight: checkTime(index) }">{{ round.nfiltturb_4 }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.ssett_ph }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.ssett_partial }}</td>
+            <td :class="{ highlight: checkTime(index)}">{{ round.ssett_total }}</td>
+            <td class="thickR" :class="{ highlight: checkTime(index) }">{{ round.ssett_turbidity }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.sfilt_ph }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.sfilt_partial }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.sfilt_total }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.sfiltturb_5 }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.sfiltturb_6 }}</td>
+            <td :class="{ highlight: checkTime(index) }">{{ round.sfiltturb_7 }}</td>
+            <td class="thickR" :class="{ highlight: checkTime(index) }">{{ round.sfiltturb_8 }}</td>
+            <td class="thickL thickR" :class="{ highlight: checkTime(index) }">{{ round.operator }}</td>
+            <td class="editBtn" :class="{ highlight: checkTime(index) }">
+              <a class="btn btn-primary btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/node/index.html?form=37&record=' + round.psofia_recordid + '#96'" target="_blank" v-if="round.psofia_recordid">EDIT</a>
+              <a class="btn btn-warning btn-xs" :href="'http://eservices.cityoflewisville.com/psofia/node/index.html?form=37'" target="_blank" v-if="!round.psofia_recordid">NEW</a>
+            </td>
+          </tr>
+          <tr class="bg-warning">
+            <th>Averages</th>
+            <td class="thickL">{{ average("finished_ph") }}</td>
+            <td>{{ average("finished_partial") }}</td>
+            <td>{{ average("finished_total") }}</td>
+            <td class="thickR">{{ average("finished_turbidity") }}</td>
+            <td>{{ average("raw_temp") }}</td>
+            <td>{{ average("raw_ph") }}</td>
+            <td>{{ average("raw_partial") }}</td>
+            <td>{{ average("raw_total") }}</td>
+            <td class="thickR">{{ average("raw_turbidity") }}</td>
+            <td>{{ average("nsett_ph") }}</td>
+            <td>{{ average("nsett_partial") }}</td>
+            <td>{{ average("nsett_total") }}</td>
+            <td class="thickR">{{ average("nsett_turbidity") }}</td>
+            <td>{{ average("nfilt_ph") }}</td>
+            <td>{{ average("nfilt_partial") }}</td>
+            <td>{{ average("nfilt_total") }}</td>
+            <td>{{ average("nfiltturb_1") }}</td>
+            <td>{{ average("nfiltturb_2") }}</td>
+            <td>{{ average("nfiltturb_3") }}</td>
+            <td class="thickR">{{ average("nfiltturb_4") }}</td>
+            <td>{{ average("ssett_ph") }}</td>
+            <td>{{ average("ssett__partial") }}</td>
+            <td>{{ average("ssett_total") }}</td>
+            <td class="thickR">{{ average("ssett_turbidity") }}</td>
+            <td>{{ average("sfilt_ph") }}</td>
+            <td>{{ average("sfilt_partial") }}</td>
+            <td>{{ average("sfilt_total") }}</td>
+            <td>{{ average("sfiltturb_5") }}</td>
+            <td>{{ average("sfiltturb_6") }}</td>
+            <td>{{ average("sfiltturb_7") }}</td>
+            <td class="thickR">{{ average("sfiltturb_8") }}</td>
+            <td class="thickR thickL"></td>
+            <td class="thickR editBtn"></td>
+          </tr>
+        </tbody>
+      </table>
+      <div>
+        <p v-for="(round, index) in rounds" v-if="round.comments">
+          {{ round.rTime + ": " + round.comments + " - " + round.operator }}
+        </p>
+      </div>
+      <button id="download-csv" v-on:click="exportTableToCSV('daily_water_analysis.csv')">Download Excel File</button>
+      <div class="spinner" v-if="loading"></div>
+    </div>
+    <script src="./main.js?v=1.2"></script>
+    <script src="../components/update.js"></script>
+  </body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>WTP-014 - Raw Water Pumpage</title>
+    <!-- Reference jquery library -->
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Links to a bootstrap style sheet -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Vue.js library -->
+    <script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+    <script src="http://eservices.cityoflewisville.com/COLSecurity/col_security.js"></script>
+    <link rel="stylesheet" type="text/css" media="print" href="../print.css" />
+    <style media="screen">
+
+      table {
+        max-width: 8in;
+        border-collapse: collapse;
+      }
+
+      table div {
+        max-width: 6in;
+      }
+      table th {
+        text-align: center;
+      }
+
+      table td {
+        font-size: 8pt;
+      }
+
+      .nav, .navbar {
+        background-color: lightblue !important;
+      }
+
+      .container-fluid {
+        text-align: center;
+      }
+
+      .grayBackground {
+        background-color: lightgray;
+      }
+
+      .underlined {
+        text-decoration: underline;
+      }
+
+      .padLeft {
+        padding-left: 15mm;
+      }
+
+      .wrap {
+        max-width: 100px;
+        display: inline;
+      }
+      .center {
+        margin: 0 auto;
+      }
+
+      .main-card {
+        background: #fff;
+        border-radius: 2px;
+        margin: 1rem auto;
+        margin-bottom: 24px;
+        border: 1px lightgray solid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 16px;
+        text-align: left;
+        max-width: 1150px;
+        width: 95%;
+        height: 100%;
+      }
+
+      .comments {
+        height: 20px;
+      }
+
+      thead tr:nth-of-type(2) th {
+  			font-size: .8em;
+  		}
+      thead tr:nth-of-type(4) th {
+  			font-size: .8em;
+  		}
+      @media print {
+        .padLeft {
+          padding-left: 15mm;
+        }
+  		}
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="container-fluid" align="center">
+        <div class="hidden-print">
+          <ul class="nav nav-tabs">
+    				<li :class="(currentTab == 'Pipe Galley') ? 'active': '' "><a href="#" v-on:click="changeTab('Pipe Galley')">Pipe Galley</a></li>
+    				<li :class="(currentTab == 'Badger') ? 'active': '' "><a href="#" v-on:click="changeTab('Badger')">Badger</a></li>
+            <li><a :href="'http://apps.cityoflewisville.com/gamma/waterforms/50/index.html?Year=' + yearParam + '&Month=' + monthParam" target="_blank">Meter Reading Worksheet</a></li>
+    			</ul>
+        </div>
+        <div class="tab-content">
+  				<div id="Pipe Galley" class="tab-pane fade" v-bind:class="{'active': currentTab == 'Pipe Galley', 'in': currentTab == 'Pipe Galley' }" v-show="currentTab == 'Pipe Galley'">
+            <div class="card main-card">
+
+              <table class="table table-bordered table-condensed">
+                <thead>
+        					<tr>
+        						<th colspan="6" class=""><h1>Raw Water Pumpage (Pipe Galley)</h1></th>
+        					</tr>
+                  <tr>
+        						<th colspan="3" class="">
+                      <div class="center">
+          						  <strong>Month:</strong> {{ month }}
+          						</div>
+                    </th>
+                    <th colspan="3" class="">
+                      <strong>Year:</strong> {{ year }}
+                    </th>
+        					</tr>
+
+                  <tr>
+                    <th>Date</th>
+                    <th>North Raw Pipe Galley</th>
+                    <th>North Raw Total</th>
+                    <th>South Raw Pipe Galley</th>
+                    <th>South Raw Total</th>
+                    <th>North & South Raw Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Last Day</th>
+                    <td>{{ previousMonth.North_Raw }}</td>
+                    <td class="grayBackground">x10,000</td>
+                    <td>{{ previousMonth.South_Raw }}</td>
+                    <td class="grayBackground">x1,000</td>
+                    <td class="grayBackground"></td>
+                  </tr>
+                  <tr v-for="(date, index) in data">
+                    <td>{{ formatDate(date.day) }}</td>
+                    <td>{{ date.North_Raw }}</td>
+                    <td>{{ getTotal("North_Raw", index) }}</td>
+                    <td>{{ date.South_Raw }}</td>
+                    <td>{{ getTotal("South_Raw", index) }}</td>
+                    <td>{{ combinedTotal("North_Raw", "South_Raw", index) }}</td>
+                  </tr>
+                  <tr  class="bg-danger">
+                    <th>Total</th>
+                    <td></td>
+                    <td>{{ columnCalc("North_Raw").total }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("South_Raw").total }}</td>
+                    <td>{{ columnCalc("North_Raw", "South_Raw").total }}</td>
+                  </tr>
+                  <tr class="bg-success">
+                    <th>Max</th>
+                    <td></td>
+                    <td>{{ columnCalc("North_Raw").max }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("South_Raw").max }}</td>
+                    <td>{{ columnCalc("North_Raw", "South_Raw").max }}</td>
+                  </tr>
+                  <tr class="bg-warning">
+                    <th>Min</th>
+                    <td></td>
+                    <td>{{ columnCalc("North_Raw").min }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("South_Raw").min }}</td>
+                    <td>{{ columnCalc("North_Raw", "South_Raw").min }}</td>
+                  </tr>
+                  <tr class="bg-info">
+                    <th>Avg</th>
+                    <td></td>
+                    <td>{{ columnCalc("North_Raw").avg }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("South_Raw").avg }}</td>
+                    <td>{{ columnCalc("North_Raw", "South_Raw").avg }}</td>
+                  </tr>
+                  <tr><td colspan="6">Comments:</td></tr>
+                  <tr><td colspan="6" class="comments"></td></tr>
+                  <tr><td colspan="6" class="comments"></td></tr>
+                  <tr><td colspan="6" class="comments"></td></tr>
+                  <tr>
+                    <td colspan="5">Give daily raw total to Corps of Engineers. Phone 972-434-1666</td>
+                    <td colspan="1">WTP-014 Page 1 of 2</td>
+                  </tr>
+                </tbody>
+              </table>
+
+            </div>
+          </div>
+        </div>
+        <div class="tab-content">
+  				<div id="Badger" class="tab-pane fade" v-bind:class="{'active': currentTab == 'Badger', 'in': currentTab == 'Badger' }" v-show="currentTab == 'Badger'">
+            <div class="card main-card">
+              <table class="table table-bordered table-condensed">
+                <thead>
+        					<tr>
+        						<th colspan="7" class=""><h1>Raw Water Pumpage (Badger)</h1></th>
+        					</tr>
+                  <tr>
+        						<td colspan="3" class="">
+                      <div class="center">
+          						  <strong>Month:</strong> {{ month }}
+          						</div>
+                    </td>
+                    <td colspan="4" class="">
+                      <div class="center">
+                        <strong>Year:</strong> {{ year }}
+          						</div>
+                    </td>
+        					</tr>
+
+                  <tr>
+                    <th>Date</th>
+                    <th>Raw Water Vault (Badger) x1,000</th>
+                    <th>Raw Water Vault Total</th>
+                    <th>South Raw Pipe Galley (Badger) x1,000</th>
+                    <th>South Raw Total (Badger)</th>
+                    <th></th>
+                    <th>Lake Elev.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Last Day</th>
+                    <td>{{ previousMonth.Raw_Vault }}</td>
+                    <td class="grayBackground"></td>
+                    <td>{{ previousMonth.S_Raw }}</td>
+                    <td class="grayBackground"></td>
+                    <td class="grayBackground"></td>
+                    <td class="grayBackground"></td>
+                  </tr>
+                  <tr v-for="(date, index) in data">
+                    <td>{{ formatDate(date.day) }}</td>
+                    <td>{{ date.Raw_Vault }}</td>
+                    <td>{{ getTotal("Raw_Vault", index) }}</td>
+                    <td>{{ date.S_Raw }}</td>
+                    <td>{{ getTotal("S_Raw", index) }}</td>
+                    <td class="grayBackground"></td>
+                    <td>{{ date.lake }}</td>
+                  </tr>
+                  <tr  class="bg-danger">
+                    <th>Total</th>
+                    <td></td>
+                    <td>{{ columnCalc("Raw_Vault").total }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("S_Raw").total }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("lake").total }}</td>
+                  </tr>
+                  <tr class="bg-success">
+                    <th>Max</th>
+                    <td></td>
+                    <td>{{ columnCalc("Raw_Vault").max }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("S_Raw").max }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("lake").max }}</td>
+                  </tr>
+                  <tr class="bg-warning">
+                    <th>Min</th>
+                    <td></td>
+                    <td>{{ columnCalc("Raw_Vault").min }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("S_Raw").min }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("lake").min }}</td>
+                  </tr>
+                  <tr class="bg-info">
+                    <th>Avg</th>
+                    <td></td>
+                    <td>{{ columnCalc("Raw_Vault").avg }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("S_Raw").avg }}</td>
+                    <td></td>
+                    <td>{{ columnCalc("lake").avg }}</td>
+                  </tr>
+                  <tr><td colspan="7">Comments:</td></tr>
+                  <tr><td colspan="7" class="comments"></td></tr>
+                  <tr><td colspan="7" class="comments"></td></tr>
+                  <tr><td colspan="7" class="comments"></td></tr>
+                  <tr>
+                    <td colspan="5">Give daily raw total to Corps of Engineers. Phone 972-434-1666</td>
+                    <td colspan="2">WTP-014 Page 2 of 2</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button id="download-csv" v-on:click="exportTableToCSV('raw_water_pumpage.csv')">Download Excel File</button>
+    </div>
+    <script src="./main.js?v=1.3"></script>
+  </body>
+</html>
